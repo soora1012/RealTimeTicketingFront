@@ -84,6 +84,7 @@ sessionStorage gate 방식
 ------------------------------
 # 폴더 구조
 
+```
 src
 ├ pages
 │ ├ Event.vue
@@ -91,7 +92,8 @@ src
 │ └ Checkout.vue
 ├ router.js
 ├ api.js
-└ main.js 
+└ main.js
+```
 ------------------------------
 # API 연동
 
@@ -108,5 +110,7 @@ POST /reservation/confirm | 예약 확정 |
 ------------------------------
 # 실행 방법
 
+```
 npm install
 npm run dev
+```
