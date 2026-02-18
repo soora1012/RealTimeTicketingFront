@@ -1,0 +1,29 @@
+{
+  "name": "realtimeticketingfront",
+  "version": "1.0.0",
+  "description": "RealTimeTicketingFront",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/soora1012/RealTimeTicketingFront.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/soora1012/RealTimeTicketingFront/issues"
+  },
+  "homepage": "https://github.com/soora1012/RealTimeTicketingFront#readme",
+  "dependencies": {
+    "@vitejs/plugin-vue": "^6.0.4",
+    "axios": "^1.13.5",
+    "vite": "^7.3.1",
+    "vue": "^3.5.28",
+    "vue-router": "^5.0.2"
+  }
+}
