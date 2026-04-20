@@ -3,11 +3,15 @@ import Event from "./pages/Event.vue"
 import Seat from "./pages/Seat.vue"
 import Checkout from "./pages/Checkout.vue"
 import NotFound from "./pages/NotFound.vue"
+import Intro from "./pages/Intro.vue"
+import UserList from "./pages/UserList.vue"
 
 const router = createRouter({
   history: createWebHistory(),
   routes: [
-    { path: "/", component: Event } ,
+    { path: "/", component: Intro } ,
+    { path: "/userlist", component: UserList, meta: { gate: "userlist" } },
+    { path: "/event", component: Event, meta: { gate: "event" } },
     { path: "/seat", component: Seat, meta: { gate: "seat" } },
     { path: "/checkout", component: Checkout, meta: { gate: "checkout" } },
     {
