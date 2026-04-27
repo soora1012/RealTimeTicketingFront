@@ -9,7 +9,7 @@ import UserList from "./pages/UserList.vue"
 const router = createRouter({
   history: createWebHistory(),
   routes: [
-    { path: "/", component: Intro } ,
+    { path: "/", component: UserList } ,
     { path: "/userlist", component: UserList, meta: { gate: "userlist" } },
     { path: "/event", component: Event, meta: { gate: "event" } },
     { path: "/seat", component: Seat, meta: { gate: "seat" } },
