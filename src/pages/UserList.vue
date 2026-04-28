@@ -4,7 +4,9 @@ import { useRouter } from "vue-router";
 import * as api from "@/api"  
 import Loading from "@/components/Loading.vue"
 import Pagination from "@/components/Pagination.vue"
+import { useDevice } from "@/composables/useDevice";
 
+const { isMobile } = useDevice();
 const router = useRouter();
 //회원 목록 상태
 const userList = ref([]);
@@ -62,16 +64,22 @@ const movePage = (targetPage) => {
   loadUserList();
 }
 
+const goToLogin = () => {
+  sessionStorage.setItem("gate:login", "ok")
+  router.push("/login");
+};
+
+
 //로드시 실행되는 함수
 onMounted(() => {  
-    loadUserList();
+  loadUserList(); 
 });
 
 </script>
 
 
 <template>
-  <main class="page">
+  <main class="app-page page">
     <section class="container">
       <header class="header">
         <p class="eyebrow">RealTime Ticketing_김소라</p>
@@ -98,7 +106,7 @@ onMounted(() => {
         <article
           v-for="user in userList"
           :key="user.userId"
-          class="user-card"
+          class="app-card user-card"
         >
 
           <div class="user-info">
@@ -107,16 +115,18 @@ onMounted(() => {
 
           <button
             class="enter-button"
+            @click="goToLogin"
           >
             입장하기
           </button>
         </article>
       </section>
 
-      <!-- <button
+      <button
+        v-if="isMobile"
         class="more-button">
         더보기
-      </button> -->
+      </button>
 
       <p v-if="!userList.length" class="empty">
         조회된 회원이 없습니다.
@@ -124,22 +134,30 @@ onMounted(() => {
     </section>
   </main>
 
-  <Loading v-if="loading" />
 
   <Pagination
-  :page="page"
-  :total-pages="totalPages"
-  @change="movePage"
-/>
+    v-if="!isMobile"
+    :page="page"
+    :total-pages="totalPages"
+    @change="movePage"
+  />
 
+<Loading v-if="loading" />
 </template>
 
 <style scoped>
 .page {
   min-height: 100vh;
-  background: #f6f7f9;
+  min-height: 100dvh;
   padding: 32px 16px;
   box-sizing: border-box;
+  background-color: #f6f7f9;
+  background-image:
+    radial-gradient(circle at top left, rgba(37, 99, 235, 0.08), transparent 32%),
+    linear-gradient(180deg, #f7f8fb 0%, #eef1f5 100%);
+  color: #111827;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .container {
@@ -156,12 +174,14 @@ onMounted(() => {
   margin: 0 0 8px;
   font-size: 14px;
   color: #5f6b7a;
+  word-break: keep-all;
 }
 
 h1 {
   margin: 0;
   font-size: 32px;
   line-height: 1.25;
+  letter-spacing: -0.8px;
   color: #111827;
 }
 
@@ -170,6 +190,7 @@ h1 {
   color: #6b7280;
   font-size: 15px;
   line-height: 1.6;
+  word-break: keep-all;
 }
 
 .search-box {
@@ -180,6 +201,7 @@ h1 {
 
 .search-box input {
   flex: 1;
+  min-width: 0;
   height: 48px;
   border: 1px solid #d1d5db;
   border-radius: 12px;
@@ -187,6 +209,15 @@ h1 {
   font-size: 15px;
   background: #fff;
   box-sizing: border-box;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.search-box input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
 }
 
 .search-box button,
@@ -194,11 +225,17 @@ h1 {
 .more-button {
   border: 0;
   cursor: pointer;
-  font-weight: 600;
+  font-weight: 700;
+  font-family: inherit;
+  appearance: none;
+  -webkit-appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 .search-box button {
   width: 88px;
+  height: 48px;
   border-radius: 12px;
   background: #111827;
   color: #fff;
@@ -214,11 +251,22 @@ h1 {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  background: #fff;
+  min-width: 0;
+  background: rgba(255, 255, 255, 0.94);
   border: 1px solid #e5e7eb;
   border-radius: 16px;
   padding: 18px;
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+  box-sizing: border-box;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.user-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(37, 99, 235, 0.2);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
 }
 
 .user-info {
@@ -231,16 +279,13 @@ h1 {
 .user-info strong {
   color: #111827;
   font-size: 16px;
-}
-
-.user-info span {
-  color: #6b7280;
-  font-size: 14px;
-  word-break: break-all;
+  font-weight: 800;
+  overflow-wrap: anywhere;
 }
 
 .enter-button {
   flex-shrink: 0;
+  min-width: 84px;
   height: 40px;
   padding: 0 16px;
   border-radius: 10px;
@@ -248,13 +293,23 @@ h1 {
   color: #fff;
 }
 
+.enter-button:hover {
+  background: #1d4ed8;
+}
+
 .more-button {
   width: 100%;
-  height: 48px;
+  height: 50px;
   margin-top: 20px;
-  border-radius: 12px;
-  background: #e5e7eb;
-  color: #111827;
+  border-radius: 14px;
+  background: #111827;
+  color: #fff;
+  font-size: 15px;
+}
+
+.more-button:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
 }
 
 .empty {
@@ -264,35 +319,80 @@ h1 {
 }
 
 /* 모바일 */
-@media (max-width: 480px) {
+@media (max-width: 767px) {
   .page {
-    padding: 24px 14px;
+    padding: 20px 14px;
+  }
+
+  .header {
+    margin-bottom: 18px;
+  }
+
+  .eyebrow {
+    font-size: 12px;
   }
 
   h1 {
-    font-size: 26px;
+    font-size: 28px;
+    line-height: 1.2;
   }
 
   .description {
     font-size: 14px;
+    line-height: 1.55;
   }
 
   .search-box {
-    flex-direction: column;
+    flex-direction: row;
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+
+  .search-box input {
+    height: 44px;
+    font-size: 16px;
+    border-radius: 14px;
   }
 
   .search-box button {
-    width: 100%;
-    height: 46px;
+    width: 74px;
+    height: 44px;
+    border-radius: 14px;
+    font-size: 14px;
+  }
+
+  .user-list {
+    gap: 10px;
   }
 
   .user-card {
-    align-items: stretch;
-    flex-direction: column;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 64px;
+    padding: 14px 14px;
+    border-radius: 18px;
+  }
+
+  .user-info strong {
+    font-size: 16px;
   }
 
   .enter-button {
-    width: 100%;
+    width: auto;
+    min-width: 86px;
+    height: 38px;
+    padding: 0 14px;
+    border-radius: 12px;
+    font-size: 14px;
+  }
+
+  .more-button {
+    height: 48px;
+    margin-top: 16px;
+    border-radius: 14px;
   }
 }
+
 </style>

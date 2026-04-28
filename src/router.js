@@ -1,19 +1,27 @@
 import { createRouter, createWebHistory } from "vue-router"
-import Event from "./pages/Event.vue"
-import Seat from "./pages/Seat.vue"
-import Checkout from "./pages/Checkout.vue"
-import NotFound from "./pages/NotFound.vue"
-import Intro from "./pages/Intro.vue"
-import UserList from "./pages/UserList.vue"
+
+import NotFound from "@/pages/NotFound.vue"
+import UserList from "@/pages/UserList.vue"
+import Login from "@/pages/Login.vue"
+import ConcertList from "@/pages/ConcertList.vue"
+import Seat from "@/pages/Seat.vue"
+import Queue from "@/pages/Queue.vue"
+import ReservationComplete from "@/pages/ReservationComplete.vue"
+import PasswordReset from "@/pages/PasswordReset.vue"
+import PasswordResetComplete from "@/pages/PasswordResetComplete.vue"
+
 
 const router = createRouter({
   history: createWebHistory(),
   routes: [
-    { path: "/", component: UserList } ,
-    { path: "/userlist", component: UserList, meta: { gate: "userlist" } },
-    { path: "/event", component: Event, meta: { gate: "event" } },
+    { path: "/", component: UserList },
+    { path: "/login", component: Login, meta: { gate: "login" } },
+    { path: "/concertList", component: ConcertList, meta: { gate: "concertList" } },
     { path: "/seat", component: Seat, meta: { gate: "seat" } },
-    { path: "/checkout", component: Checkout, meta: { gate: "checkout" } },
+    { path: "/queue", component: Queue },
+    { path: "/reservationComplete", component: ReservationComplete },
+    { path: "/passwordReset", component: PasswordReset },
+    { path: "/passwordResetComplete", component: PasswordResetComplete },
     {
       path: "/:pathMatch(.*)*",
       name: "NotFound",
@@ -26,15 +34,12 @@ router.beforeEach((to) => {
   const gate = to.meta.gate
   if (!gate) return true
 
-  // 버튼 클릭으로 들어올 때만 심어주는 토큰
+  //버튼 클릭으로 들어올 때만 심어주는 토큰
   const token = sessionStorage.getItem(`gate:${gate}`)
   if (!token) {
-    // 직접 입력/새로고침 차단
     return { name: "NotFound" }
   }
 
-  // 1회용 토큰: 통과 후 제거 (새로고침도 막힘)
-  sessionStorage.removeItem(`gate:${gate}`)
   return true
 })
 

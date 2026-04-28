@@ -1,38 +1,53 @@
 <script setup>
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 
 const router = useRouter();
+const route = useRoute();
 
-const goHome = () => {
-  router.push("/");
+const userId = route.query.userId || "user_1";
+
+const goLogin = () => {
+  router.push({
+    path: "/login",
+    query: {
+      userId,
+    },
+  });
 };
 </script>
 
 <template>
-  <main class="app-page notfound-page">
-    <section class="notfound-container">
-      <header class="notfound-header">
+  <main class="app-page complete-page">
+    <section class="complete-container">
+      <header class="complete-header">
         <p class="eyebrow">RealTime Ticketing_김소라</p>
-        <h1>페이지를 찾을 수 없습니다</h1>
+        <h1>초기화 완료</h1>
         <p class="description">
-          요청하신 주소가 잘못되었거나, 이동된 페이지입니다.
+          비밀번호가 정상적으로 초기화되었습니다.
         </p>
       </header>
 
-      <section class="notfound-content">
-        <article class="app-card notfound-card">
-          <strong class="error-code">404</strong>
-          <p class="error-message">
-            올바른 경로로 다시 이동해주세요.
+      <section class="complete-content">
+        <article class="app-card complete-card">
+          <div class="success-icon" aria-hidden="true">
+            ✓
+          </div>
+
+          <strong class="complete-title">
+            {{ userId }}
+          </strong>
+
+          <p class="complete-message">
+            새 비밀번호로 다시 로그인해주세요.
           </p>
         </article>
 
         <button
           type="button"
           class="primary-button"
-          @click="goHome"
+          @click="goLogin"
         >
-          처음으로 이동
+          로그인 페이지 이동
         </button>
       </section>
     </section>
@@ -40,7 +55,7 @@ const goHome = () => {
 </template>
 
 <style scoped>
-.notfound-page {
+.complete-page {
   min-height: 100vh;
   min-height: 100dvh;
   padding: 56px 20px 32px;
@@ -50,13 +65,13 @@ const goHome = () => {
   -moz-osx-font-smoothing: grayscale;
 }
 
-.notfound-container {
+.complete-container {
   width: 100%;
   max-width: 860px;
   margin: 0 auto;
 }
 
-.notfound-header {
+.complete-header {
   margin-bottom: 26px;
 }
 
@@ -83,12 +98,12 @@ h1 {
   word-break: keep-all;
 }
 
-.notfound-content {
+.complete-content {
   display: grid;
   gap: 14px;
 }
 
-.notfound-card {
+.complete-card {
   min-height: 220px;
   padding: 34px 28px;
   border-radius: 24px;
@@ -99,15 +114,28 @@ h1 {
   gap: 12px;
 }
 
-.error-code {
-  font-size: 72px;
-  line-height: 1;
-  letter-spacing: -2px;
+.success-icon {
+  width: 68px;
+  height: 68px;
+  border-radius: 999px;
+  background: #2563eb;
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-size: 34px;
   font-weight: 900;
-  color: #2563eb;
+  box-shadow: 0 14px 32px rgba(37, 99, 235, 0.22);
 }
 
-.error-message {
+.complete-title {
+  margin-top: 8px;
+  font-size: 24px;
+  font-weight: 900;
+  color: #111827;
+  letter-spacing: -0.5px;
+}
+
+.complete-message {
   margin: 0;
   color: #6b7280;
   font-size: 15px;
@@ -131,22 +159,16 @@ h1 {
   background: #030712;
 }
 
-@media (max-width: 1024px) {
-  .notfound-container {
-    max-width: 760px;
-  }
-}
-
 @media (max-width: 767px) {
-  .notfound-page {
+  .complete-page {
     padding: 22px 14px 28px;
   }
 
-  .notfound-container {
+  .complete-container {
     max-width: 100%;
   }
 
-  .notfound-header {
+  .complete-header {
     margin-bottom: 18px;
   }
 
@@ -165,43 +187,33 @@ h1 {
     line-height: 1.55;
   }
 
-  .notfound-card {
+  .complete-content {
+    gap: 10px;
+  }
+
+  .complete-card {
     min-height: 190px;
     padding: 28px 20px;
     border-radius: 20px;
   }
 
-  .error-code {
-    font-size: 58px;
+  .success-icon {
+    width: 58px;
+    height: 58px;
+    font-size: 29px;
   }
 
-  .error-message {
+  .complete-title {
+    font-size: 21px;
+  }
+
+  .complete-message {
     font-size: 14px;
   }
 
   .primary-button {
     height: 48px;
     border-radius: 14px;
-  }
-}
-
-@media (max-width: 360px) {
-  .notfound-page {
-    padding: 20px 12px 26px;
-  }
-
-  h1 {
-    font-size: 25px;
-  }
-
-  .error-code {
-    font-size: 52px;
-  }
-}
-
-@media (hover: none), (pointer: coarse) {
-  .primary-button:hover {
-    background: #111827;
   }
 }
 </style>
