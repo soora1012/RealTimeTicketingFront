@@ -1,28 +1,47 @@
 <script setup>
-import { ref } from "vue";
-import { useRouter, useRoute } from "vue-router";
+import { ref, onMounted } from "vue"
+import { useRouter } from "vue-router";
+import { useAuthStore } from "@/stores/authStore"
+import Loading from "@/components/Loading.vue"
+import * as api from "@/api"  
 
 const router = useRouter();
-const route = useRoute();
+const authStore = useAuthStore();
+const loading = ref(false);
+const loginForm = ref({
+  userId: "",
+  newPassword: "",
+})
 
-const userId = ref(route.query.userId || "user_1");
-const newPassword = ref("");
 
-const resetPassword = () => {
-  // TODO: 비밀번호 초기화 API 연결
-  // await api.resetPassword(userId.value, newPassword.value)
 
-  router.push({
-    path: "/login",
-    query: {
-      userId: userId.value,
-    },
-  });
+
+const resetPassword = async ({ reset = false } = {}) => {
+  try {
+    loading.value = true;
+    const params = {
+      userId: loginForm.value.userId,
+      newPassword: loginForm.value.newPassword,
+    };
+    const { data } = await api.resetPassword(params);
+    sessionStorage.setItem("gate:login", "ok");
+    router.push("/login");
+
+  } catch (error) {
+    console.error("Error:", error)
+  } finally {
+    loading.value = false
+  }
 };
 
-const goLogin = () => {
-  router.push("/login");
-};
+
+const init = () => {
+ loginForm.value.userId = authStore.userId
+}
+
+onMounted(() => {  
+  init(); 
+});
 </script>
 
 <template>
@@ -40,15 +59,15 @@ const goLogin = () => {
         <label class="app-card form-row">
           <span>회원 아이디</span>
           <input
-            v-model="userId"
+            v-model="loginForm.userId"
             type="text"
             autocomplete="username"
-            placeholder="user_1"
+            placeholder="회원 아이디"
           />
 
           <span>새 비밀번호</span>
           <input
-            v-model="newPassword"
+            v-model="loginForm.newPassword"
             type="password"
             autocomplete="new-password"
             placeholder="새 비밀번호 입력"
@@ -56,26 +75,18 @@ const goLogin = () => {
         </label>
 
         <div class="button-group">
-            <button
-            type="button"
-            class="secondary-button"
-            @click="goLogin"
-          >
-            로그인으로
-          </button>
-
           <button
             type="submit"
             class="primary-button"
-            :disabled="!userId || !newPassword"
+            :disabled="!loginForm.userId || !loginForm.newPassword"
           >
             초기화하기
           </button>
-
         </div>
       </form>
     </section>
   </main>
+
 </template>
 
 <style scoped>
@@ -171,8 +182,13 @@ h1 {
   margin-top: 4px;
 }
 
+.button-group > *:only-child {
+  grid-column: 1 / -1;
+}
+
 .primary-button,
 .secondary-button {
+  width: 100%;
   height: 52px;
   border-radius: 16px;
   font-size: 15px;

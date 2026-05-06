@@ -5,54 +5,55 @@ import * as api from "@/api"
 import Loading from "@/components/Loading.vue"
 import Pagination from "@/components/Pagination.vue"
 import { useDevice } from "@/composables/useDevice";
+import { useAuthStore } from "@/stores/authStore"
+
 
 const { isMobile } = useDevice();
 const router = useRouter();
-//회원 목록 상태
-const userList = ref([]);
-//검색 조건
+const authStore = useAuthStore()
 const keyword = ref("");
-//페이지 정보
-const page = ref(1);
-const size = ref(10);
-const totalPages = ref(0);
-const totalCount = ref(0);
-const first = ref(false);
-const last = ref(false);
-//로딩 이모티콘
 const loading = ref(false);
+const userForm = ref({
+  list : [],
+  page : 1,
+  size : 10,
+  totalPages : 0,
+  totalCount : 0,
+  first : false,
+  last : false,
+})
 
-//유저리스트 호출
+
 const loadUserList = async ({ reset = false } = {}) => {
   try {
     if (reset) {
-      page.value = 1;
-      userList.value = [];
+      userForm.value.page = 1;
+      userForm.value.list = [];
     }
-
     loading.value = true;
-    const { data } = await api.userList(
-      page.value,
-      size.value,
-      keyword.value,
-    )
-    const result = data.data 
-    console.log("결과", result);
 
-    userList.value = result.content
-    page.value = result.page
-    size.value = result.size
-    totalPages.value = result.totalPages
-    totalCount.value = result.totalCount
-    first.value = result.first
-    last.value = result.last
-    
+    const params = {
+      page: userForm.value.page,
+      size: userForm.value.size,
+      keyword: keyword.value
+    };
+    const { data } = await api.userList(params);
+    const result = data.data;
+    userForm.value = {
+      list : result.content,
+      page : result.page,
+      size : result.size,
+      totalPages : result.totalPages,
+      totalCount : result.totalCount,
+      first : result.first,
+      last : result.last,
+    };
+ 
   } catch (error) {
-    console.error("회원 목록 조회 실패:", error)
+    console.error("Error:", error)
   } finally {
     loading.value = false
   }
-
 };
 
 const searchUserList = () => {
@@ -60,21 +61,27 @@ const searchUserList = () => {
 }
 
 const movePage = (targetPage) => {
-  page.value = targetPage
+  userForm.value.page = targetPage
   loadUserList();
 }
 
-const goToLogin = () => {
-  sessionStorage.setItem("gate:login", "ok")
+const goToLogin = (user) => {
+  authStore.setUser({
+    userId: user.userId,
+    passwordResetCount: user.passwordResetCount,
+  });
+  sessionStorage.setItem("gate:login", "ok");
   router.push("/login");
 };
 
 
-//로드시 실행되는 함수
-onMounted(() => {  
+const init = () => {
   loadUserList(); 
-});
+}
 
+onMounted(() => {  
+  init(); 
+});
 </script>
 
 
@@ -104,21 +111,28 @@ onMounted(() => {
 
       <section class="user-list">
         <article
-          v-for="user in userList"
+          v-for="user in userForm.list"
           :key="user.userId"
           class="app-card user-card"
         >
 
           <div class="user-info">
-            <strong>{{ user.userId }}</strong>
+            <div class="user-row">
+              <strong>{{ user.userId }}</strong>
+              <span
+                v-if="user.passwordResetCount != 0"
+                class="user-state">
+                비밀번호 설정됨
+              </span>
+            </div>
           </div>
 
           <button
             class="enter-button"
-            @click="goToLogin"
-          >
+            @click="goToLogin(user)">
             입장하기
           </button>
+
         </article>
       </section>
 
@@ -128,7 +142,7 @@ onMounted(() => {
         더보기
       </button>
 
-      <p v-if="!userList.length" class="empty">
+      <p v-if="!userForm.list.length" class="empty">
         조회된 회원이 없습니다.
       </p>
     </section>
@@ -137,8 +151,8 @@ onMounted(() => {
 
   <Pagination
     v-if="!isMobile"
-    :page="page"
-    :total-pages="totalPages"
+    :page="userForm.page"
+    :total-pages="userForm.totalPages"
     @change="movePage"
   />
 
@@ -271,9 +285,28 @@ h1 {
 
 .user-info {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
   min-width: 0;
+}
+
+.user-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.user-state {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: 999px;
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
 }
 
 .user-info strong {
@@ -316,6 +349,25 @@ h1 {
   margin-top: 32px;
   text-align: center;
   color: #6b7280;
+}
+
+.user-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.using-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 12px;
+  font-weight: 800;
 }
 
 /* 모바일 */

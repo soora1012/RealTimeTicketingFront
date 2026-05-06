@@ -1,21 +1,57 @@
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted } from "vue"
 import { useRouter } from "vue-router";
+import { useAuthStore } from "@/stores/authStore"
+import Loading from "@/components/Loading.vue"
+import * as api from "@/api"  
 
 const router = useRouter();
+const authStore = useAuthStore();
+const loading = ref(false);
+const loginForm = ref({
+  userId: "",
+  password: "",
+  passwordResetCount: 0,
+})
 
-const userId = ref("user_1");
-const password = ref("");
 
-const login = () => {
-  sessionStorage.setItem("gate:concertList", "ok");
-  router.push("/concertList");
+const login = async () => {
+  try {
+    loading.value = true;
+    const params = {
+      userId: loginForm.value.userId,
+      password: loginForm.value.password,
+    };
+    const { data } = await api.login(params);
+    const result = data.data;
+    sessionStorage.setItem("gate:concertList", "ok");
+    router.push("/concertList");
+  } catch (error) {
+    console.error("Error:", error);
+    const message = error.response?.data?.error || "오류가 발생했습니다.";
+    alert(message);
+  } finally {
+    loading.value = false
+  }
 };
 
-const resetPassword = () => {
-  alert("비밀번호 초기화 기능 준비 중입니다.");
+const resetPassword = () => { 
+  sessionStorage.setItem("gate:passwordReset", "ok");
+  router.push("/passwordReset"); 
 };
+
+const init = () => {
+ loginForm.value = {
+    userId : authStore.userId,
+    passwordResetCount : authStore.passwordResetCount,
+ }
+}
+
+onMounted(() => {  
+  init(); 
+});
 </script>
+
 
 <template>
   <main class="app-page login-page">
@@ -32,15 +68,15 @@ const resetPassword = () => {
         <label class="app-card form-row">
           <span>회원 아이디</span>
           <input
-            v-model="userId"
+            v-model="loginForm.userId"
             type="text"
             autocomplete="username"
-            placeholder="user_1"
+            placeholder="회원 아이디"
           />
 
           <span>비밀번호</span>
           <input
-            v-model="password"
+            v-model="loginForm.password"
             type="password"
             autocomplete="current-password"
             placeholder="비밀번호 입력"
@@ -49,6 +85,7 @@ const resetPassword = () => {
 
         <div class="button-group">
           <button
+            v-if="loginForm.passwordResetCount == 0"
             class="reset-button"
             type="button"
             @click="resetPassword"
@@ -63,6 +100,7 @@ const resetPassword = () => {
       </form>
     </section>
   </main>
+<Loading v-if="loading" />
 </template>
 
 <style scoped>
@@ -156,8 +194,13 @@ h1 {
   margin-top: 4px;
 }
 
+.button-group > *:only-child {
+  grid-column: 1 / -1;
+}
+
 .login-button,
 .reset-button {
+  width: 100%;
   height: 52px;
   border-radius: 16px;
   font-size: 15px;

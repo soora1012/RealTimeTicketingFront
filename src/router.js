@@ -20,7 +20,7 @@ const router = createRouter({
     { path: "/seat", component: Seat, meta: { gate: "seat" } },
     { path: "/queue", component: Queue },
     { path: "/reservationComplete", component: ReservationComplete },
-    { path: "/passwordReset", component: PasswordReset },
+    { path: "/passwordReset", component: PasswordReset, meta: { gate: "passwordReset" } },
     { path: "/passwordResetComplete", component: PasswordResetComplete },
     {
       path: "/:pathMatch(.*)*",
