@@ -9,14 +9,14 @@ const router = useRouter();
 const authStore = useAuthStore();
 const loading = ref(false);
 const loginForm = ref({
-  userId: "",
+  loginId: "",
 });
 const concertList = ref([])
 
 const loadConcertList = async () => {
   try {
     loading.value = true;
-    const { data } = await api.concertList({});
+    const { data } = await api.concertList();
     const result = data.data ?? [];
     concertList.value = result.map(schedule => ({
         concertId: schedule.concertId ?? 0,
@@ -36,7 +36,7 @@ const loadConcertList = async () => {
       }));
 
   } catch (error) {
-    console.error("Error:", error);
+    console.error(error);
     const message = error.response?.data?.error || "오류가 발생했습니다.";
     alert(message);
   } finally {
@@ -44,16 +44,30 @@ const loadConcertList = async () => {
   }
 };
 
-const goToSeat = (concert) => {
-  sessionStorage.setItem("gate:seat", "ok");
-  router.push({
-    path: "/seat",
-    query: {
-      concertId: concert.concertId,
-      concertTitle: concert.title,
-    },
-  });
+
+const goToSeat = async (concert) => {
+   try {
+    loading.value = true;
+    const { data } = await api.queueEnter(concert.concertScheduleId);
+    const result = data.data ?? "";
+    console.log("result::", result);
+    
+    if(result?.accessAllowed){
+        sessionStorage.setItem("gate:seat", "ok");
+        router.push("/concertList");
+    }else {
+        sessionStorage.setItem("gate:queue", "ok");
+        router.push("/queue");
+    }
+  } catch (error) {
+    console.error(error);
+    const message = error.response?.data?.error || "오류가 발생했습니다.";
+    alert(message);
+  } finally {
+    loading.value = false
+  }
 };
+
 
 const init = () => {
  loginForm.value = {

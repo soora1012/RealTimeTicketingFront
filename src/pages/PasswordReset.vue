@@ -9,18 +9,16 @@ const router = useRouter();
 const authStore = useAuthStore();
 const loading = ref(false);
 const loginForm = ref({
-  userId: "",
+  loginId: "",
   newPassword: "",
 })
-
-
 
 
 const resetPassword = async ({ reset = false } = {}) => {
   try {
     loading.value = true;
     const params = {
-      userId: loginForm.value.userId,
+      loginId: loginForm.value.loginId,
       newPassword: loginForm.value.newPassword,
     };
     const { data } = await api.resetPassword(params);
@@ -28,7 +26,7 @@ const resetPassword = async ({ reset = false } = {}) => {
     router.push("/login");
 
   } catch (error) {
-    console.error("Error:", error);
+    console.error(error);
     const message = error.response?.data?.error || "오류가 발생했습니다.";
     alert(message);
   } finally {
@@ -38,7 +36,7 @@ const resetPassword = async ({ reset = false } = {}) => {
 
 
 const init = () => {
- loginForm.value.userId = authStore.userId
+ loginForm.value.loginId = authStore.loginId
 }
 
 onMounted(() => {  
@@ -61,7 +59,7 @@ onMounted(() => {
         <label class="app-card form-row">
           <span>회원 아이디</span>
           <input
-            v-model="loginForm.userId"
+            v-model="loginForm.loginId"
             type="text"
             autocomplete="username"
             placeholder="회원 아이디"
@@ -80,7 +78,7 @@ onMounted(() => {
           <button
             type="submit"
             class="primary-button"
-            :disabled="!loginForm.userId || !loginForm.newPassword"
+            :disabled="!loginForm.loginId || !loginForm.newPassword"
           >
             초기화하기
           </button>

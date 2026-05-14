@@ -9,7 +9,7 @@ const router = useRouter();
 const authStore = useAuthStore();
 const loading = ref(false);
 const loginForm = ref({
-  userId: "",
+  loginId: "",
   password: "",
   passwordResetCount: 0,
 })
@@ -19,7 +19,7 @@ const login = async () => {
   try {
     loading.value = true;
     const params = {
-      userId: loginForm.value.userId,
+      loginId: loginForm.value.loginId,
       password: loginForm.value.password,
     };
     const { data } = await api.login(params);
@@ -27,7 +27,7 @@ const login = async () => {
     sessionStorage.setItem("gate:concertList", "ok");
     router.push("/concertList");
   } catch (error) {
-    console.error("Error:", error);
+    console.error(error);
     const message = error.response?.data?.error || "오류가 발생했습니다.";
     alert(message);
   } finally {
@@ -42,7 +42,7 @@ const resetPassword = () => {
 
 const init = () => {
  loginForm.value = {
-    userId : authStore.userId,
+    loginId : authStore.loginId,
     passwordResetCount : authStore.passwordResetCount,
  }
 }
@@ -68,7 +68,7 @@ onMounted(() => {
         <label class="app-card form-row">
           <span>회원 아이디</span>
           <input
-            v-model="loginForm.userId"
+            v-model="loginForm.loginId"
             type="text"
             autocomplete="username"
             placeholder="회원 아이디"

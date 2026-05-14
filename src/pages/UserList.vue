@@ -50,7 +50,7 @@ const loadUserList = async ({ reset = false } = {}) => {
     };
  
   } catch (error) {
-    console.error("Error:", error);
+    console.error(error);
     const message = error.response?.data?.error || "오류가 발생했습니다.";
     alert(message);
   } finally {
@@ -69,7 +69,7 @@ const movePage = (targetPage) => {
 
 const goToLogin = (user) => {
   authStore.setUser({
-    userId: user.userId,
+    loginId: user.loginId,
     passwordResetCount: user.passwordResetCount,
   });
   sessionStorage.setItem("gate:login", "ok");
@@ -114,13 +114,13 @@ onMounted(() => {
       <section class="user-list">
         <article
           v-for="user in userForm.list"
-          :key="user.userId"
+          :key="user.loginId"
           class="app-card user-card"
         >
 
           <div class="user-info">
             <div class="user-row">
-              <strong>{{ user.userId }}</strong>
+              <strong>{{ user.loginId }}</strong>
               <span
                 v-if="user.passwordResetCount != 0"
                 class="user-state">

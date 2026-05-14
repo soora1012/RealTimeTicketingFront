@@ -4,13 +4,13 @@ import { useRouter, useRoute } from "vue-router";
 const router = useRouter();
 const route = useRoute();
 
-const userId = route.query.userId || "user_1";
+const loginId = route.query.loginId || "user_1";
 
 const goLogin = () => {
   router.push({
     path: "/login",
     query: {
-      userId,
+      loginId,
     },
   });
 };
@@ -34,7 +34,7 @@ const goLogin = () => {
           </div>
 
           <strong class="complete-title">
-            {{ userId }}
+            {{ loginId }}
           </strong>
 
           <p class="complete-message">
