@@ -50,7 +50,9 @@ const loadUserList = async ({ reset = false } = {}) => {
     };
  
   } catch (error) {
-    console.error("Error:", error)
+    console.error("Error:", error);
+    const message = error.response?.data?.error || "오류가 발생했습니다.";
+    alert(message);
   } finally {
     loading.value = false
   }

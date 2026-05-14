@@ -1,22 +1,51 @@
 <script setup>
+import { ref, onMounted } from "vue"
 import { useRouter } from "vue-router";
+import { useAuthStore } from "@/stores/authStore"
+import Loading from "@/components/Loading.vue"
+import * as api from "@/api"  
 
 const router = useRouter();
+const authStore = useAuthStore();
+const loading = ref(false);
+const loginForm = ref({
+  userId: "",
+});
+const concertList = ref([])
 
-const userId = "user_1";
+const loadConcertList = async () => {
+  try {
+    loading.value = true;
+    const { data } = await api.concertList({});
+    const result = data.data ?? [];
+    concertList.value = result.map(schedule => ({
+        concertId: schedule.concertId ?? 0,
+        description: schedule.description ?? "",
+        title: schedule.title ?? "",
+        venue: schedule.venue ?? "",
+        concertScheduleId: schedule.concertScheduleId ?? 0,
+        startDate: schedule.startDate ?? "",
+        endDate: schedule.endDate ?? "",
+        openDate: schedule.openDate ?? "",
+        state: schedule.state ?? "",
+        sequence: schedule.sequence ?? 0,
+        totalSeatCount: schedule.totalSeatCount ?? 0,
+        availableSeatCount: schedule.availableSeatCount ?? 0,
+        holdSeatCount: schedule.holdSeatCount ?? 0,
+        reservedSeatCount: schedule.reservedSeatCount ?? 0,
+      }));
 
-const concerts = [
-  { concertId: 1, title: "A 콘서트", remainingSeatCount: 521 },
-  { concertId: 2, title: "B 콘서트", remainingSeatCount: 1502 },
-  { concertId: 3, title: "C 콘서트", remainingSeatCount: 0 },
-  { concertId: 4, title: "D 콘서트", remainingSeatCount: 84 },
-];
+  } catch (error) {
+    console.error("Error:", error);
+    const message = error.response?.data?.error || "오류가 발생했습니다.";
+    alert(message);
+  } finally {
+    loading.value = false
+  }
+};
 
 const goToSeat = (concert) => {
-  if (concert.remainingSeatCount <= 0) return;
-
   sessionStorage.setItem("gate:seat", "ok");
-
   router.push({
     path: "/seat",
     query: {
@@ -25,6 +54,20 @@ const goToSeat = (concert) => {
     },
   });
 };
+
+const init = () => {
+ loginForm.value = {
+    userId : authStore.userId,
+ };
+
+ loadConcertList();
+}
+
+onMounted(() => {  
+  init(); 
+});
+
+
 </script>
 
 <template>
@@ -34,13 +77,13 @@ const goToSeat = (concert) => {
         <p class="eyebrow">RealTime Ticketing_김소라</p>
         <h1>예약 가능 콘서트</h1>
         <p class="description">
-          {{ userId }}님, 예매할 콘서트를 선택해주세요.
+          {{ loginForm.userId }}님, 예매할 콘서트를 선택해주세요.
         </p>
       </header>
 
       <section class="concert-list">
         <button
-          v-for="concert in concerts"
+          v-for="concert in concertList"
           :key="concert.concertId"
           type="button"
           class="app-card concert-row"
@@ -49,7 +92,7 @@ const goToSeat = (concert) => {
           @click="goToSeat(concert)"
         >
           <div class="concert-info">
-            <strong>{{ concert.title }}</strong>
+            <strong>{{ concert.title+"_" + concert.sequence }}</strong>
             <span>
               {{ concert.remainingSeatCount > 0 ? "예약 가능" : "예약 마감" }}
             </span>
@@ -66,6 +109,7 @@ const goToSeat = (concert) => {
       </section>
     </section>
   </main>
+<Loading v-if="loading" />
 </template>
 
 <style scoped>
