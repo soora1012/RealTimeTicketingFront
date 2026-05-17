@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from "vue"
 import { useRouter } from "vue-router";
-import { useAuthStore } from "@/stores/authStore"
+import { useAuthStore } from "@/stores"
 import Loading from "@/components/Loading.vue"
 import * as api from "@/api"  
 

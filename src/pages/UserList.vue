@@ -5,7 +5,7 @@ import * as api from "@/api"
 import Loading from "@/components/Loading.vue"
 import Pagination from "@/components/Pagination.vue"
 import { useDevice } from "@/composables/useDevice";
-import { useAuthStore } from "@/stores/authStore"
+import { useAuthStore } from "@/stores"
 
 
 const { isMobile } = useDevice();

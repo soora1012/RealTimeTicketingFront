@@ -1,24 +1,120 @@
 <script setup>
-import { computed, ref } from "vue";
-import { useRouter, useRoute } from "vue-router";
+import { ref, onMounted, computed, onUnmounted } from "vue"
+import { useRouter } from "vue-router";
+import { useAuthStore, useQueueStore } from "@/stores"
+import { connectQueueSse } from "@/sse/queueSse"
+import Loading from "@/components/Loading.vue"
+import * as api from "@/api"  
 
 const router = useRouter();
-const route = useRoute();
-
-const userId = route.query.userId || "user_1";
-const concertTitle = route.query.concertTitle || "A 콘서트";
-
-const waitingCount = ref(520);
-const totalQueue = ref(1000);
-
-const progress = computed(() => {
-  return Math.max(8, 100 - (waitingCount.value / totalQueue.value) * 100);
+const authStore = useAuthStore();
+const queueStore = useQueueStore();
+const loading = ref(false);
+let eventSource = null;
+const loginForm = ref({
+  loginId: "",
 });
 
-const goConcertList = () => {
-  sessionStorage.setItem("gate:concertList", "ok");
-  router.push("/concertList");
+const queueForm = ref({
+    active : false,
+    concertScheduleId : 0,
+    totalCount : 0,
+    aheadCount : 0,
+    myPosition : 0,
+    concertSequence : 0,
+    concertTitle : ""
+});
+
+const aheadCount = ref(0);
+const totalCount = ref(0);
+const progress = computed(() => {
+  return Math.max(8, 100 - (aheadCount.value / totalCount.value) * 100);
+});
+
+const leaveQueue = async () => {
+  try {
+    loading.value = true;
+    await api.queuLeave(queueForm.value.concertScheduleId);
+    sessionStorage.setItem("gate:concertList", "ok");
+    router.push("/concertList");
+  } catch (error) {
+    console.error(error);
+    const message = error.response?.data?.error || "오류가 발생했습니다.";
+    alert(message);
+  } finally {
+    loading.value = false
+  }
 };
+
+
+
+const init = () => {
+  loginForm.value = {
+      loginId : authStore.loginId,
+  };
+  queueForm.value = {
+    active : queueStore.active,
+    concertScheduleId : queueStore.concertScheduleId,
+    totalCount : queueStore.totalCount,
+    aheadCount : queueStore.aheadCount,
+    myPosition : queueStore.myPosition,
+    concertSequence : queueStore.concertSequence,
+    concertTitle : queueStore.concertTitle,
+ };
+  totalCount.value = queueStore.totalCount;
+  aheadCount.value = queueStore.myPosition;
+  const concertScheduleId =  queueStore.concertScheduleId;
+
+  //sse
+  eventSource = connectQueueSse({
+    concertScheduleId,
+    /**
+     * 서버에서 queue 이벤트를 받을 때마다 실행
+     */
+    onQueueUpdate: (data) => {
+
+      console.log("결과111:", data);
+      // queueNumber.value = data.queueNumber
+      // remainingAhead.value = data.remainingAhead
+      // totalWaiting.value = data.totalWaiting
+      // active.value = data.active
+      // connected.value = true
+    },
+
+    /**
+     * active가 true가 되면 좌석 선택 페이지로 이동
+     */
+    onEnterAllowed: () => {
+      console.log("결과222:");
+      sessionStorage.setItem("gate:seat", "ok");
+      router.push("/seat");
+    },
+
+    onError: () => {
+      connected.value = false
+      errorMessage.value = "대기열 연결이 끊어졌습니다."
+    }
+  });
+}
+
+
+
+const handleBeforeUnload = (event) => {
+  event.preventDefault();
+  event.returnValue = "";
+ // leaveQueue();
+  
+}
+
+onUnmounted(() => {
+  window.removeEventListener("beforeunload", handleBeforeUnload)
+})
+
+onMounted(() => {  
+  window.addEventListener("beforeunload", handleBeforeUnload)
+  init(); 
+});
+
 </script>
 
 <template>
@@ -28,7 +124,7 @@ const goConcertList = () => {
         <p class="eyebrow">RealTime Ticketing_김소라</p>
         <h1>대기열 입장</h1>
         <p class="description">
-          {{ userId }}님, 순서가 되면 예약 가능한 콘서트 화면으로 이동합니다.
+          {{ loginForm.loginId }}님, 순서가 되면 예약 가능한 콘서트 화면으로 이동합니다.
         </p>
       </header>
 
@@ -37,7 +133,7 @@ const goConcertList = () => {
           <span class="status-label">현재 대기</span>
 
           <strong class="waiting-number">
-            {{ waitingCount.toLocaleString() }}명
+            {{ aheadCount.toLocaleString() }}명
           </strong>
 
           <p class="status-message">
@@ -55,7 +151,7 @@ const goConcertList = () => {
         <article class="app-card queue-info-card">
           <div>
             <span>선택 공연</span>
-            <strong>{{ concertTitle }}</strong>
+            <strong>{{ queueForm.concertTitle + "_" + queueForm.concertSequence }}</strong>
           </div>
 
           <div>
@@ -64,16 +160,16 @@ const goConcertList = () => {
           </div>
         </article>
 
-        <button
+        <!-- <button
           type="button"
           class="enter-button"
-          @click="goConcertList"
         >
-          테스트용 바로 입장
-        </button>
+         바로 입장
+        </button> -->
       </section>
     </section>
   </main>
+  <Loading v-if="loading" />
 </template>
 
 <style scoped>

@@ -1,12 +1,20 @@
 <script setup>
-import { ref } from "vue";
-import { useRouter, useRoute } from "vue-router";
+import { ref, onMounted, onUnmounted } from "vue"
+import { useRouter } from "vue-router";
+import { useAuthStore, useQueueStore } from "@/stores"
+import Loading from "@/components/Loading.vue"
+import * as api from "@/api"  
 
 const router = useRouter();
-const route = useRoute();
+const authStore = useAuthStore();
+const queueStore = useQueueStore();
+const loading = ref(false);
+const loginForm = ref({
+  loginId: "",
+});
 
 const userId = "user_1";
-const concertTitle = route.query.concertTitle || "A 콘서트";
+const concertTitle = "A 콘서트";
 
 const selectedSeat = ref(null);
 
@@ -42,6 +50,52 @@ const goConfirm = () => {
     },
   });
 };
+
+
+const leaveQueue = async () => {
+  try {
+    loading.value = true;
+    await api.queuLeave(queueForm.value.concertScheduleId);
+    sessionStorage.setItem("gate:concertList", "ok");
+    router.push("/concertList");
+  } catch (error) {
+    console.error(error);
+    const message = error.response?.data?.error || "오류가 발생했습니다.";
+    alert(message);
+  } finally {
+    loading.value = false
+  }
+};
+
+
+const init = () => {
+ loginForm.value = {
+    loginId : authStore.loginId,
+ };
+ queueForm.value = {
+    accessAllowed : queueStore.accessAllowed,
+    concertScheduleId : queueStore.concertScheduleId,
+    queueNumber : queueStore.queueNumber,
+    concertSequence : queueStore.concertSequence,
+    concertTitle : queueStore.concertTitle,
+ };
+}
+
+
+const handleBeforeUnload = (event) => {
+  event.preventDefault();
+  event.returnValue = "";
+  leaveQueue();
+}
+
+onUnmounted(() => {
+  window.removeEventListener("beforeunload", handleBeforeUnload)
+})
+
+onMounted(() => {  
+  window.addEventListener("beforeunload", handleBeforeUnload)
+  init(); 
+});
 </script>
 
 <template>

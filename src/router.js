@@ -3,9 +3,11 @@ import { createRouter, createWebHistory } from "vue-router"
 import NotFound from "@/pages/NotFound.vue"
 import UserList from "@/pages/UserList.vue"
 import Login from "@/pages/Login.vue"
+import Mypage from "@/pages/Mypage.vue"
 import ConcertList from "@/pages/ConcertList.vue"
 import Seat from "@/pages/Seat.vue"
 import Queue from "@/pages/Queue.vue"
+import paymentComplete from "@/pages/paymentComplete.vue"
 import ReservationComplete from "@/pages/ReservationComplete.vue"
 import PasswordReset from "@/pages/PasswordReset.vue"
 import PasswordResetComplete from "@/pages/PasswordResetComplete.vue"
@@ -14,11 +16,13 @@ import PasswordResetComplete from "@/pages/PasswordResetComplete.vue"
 const router = createRouter({
   history: createWebHistory(),
   routes: [
-    { path: "/", component: UserList },
+    { path: "/", component: UserList }, 
     { path: "/login", component: Login, meta: { gate: "login" } },
-    { path: "/concertList", component: ConcertList, meta: { gate: "concertList" } },
-    { path: "/seat", component: Seat, meta: { gate: "seat" } },
+    { path: "/mypage", component: Mypage },
+    { path: "/concertList", component: ConcertList },
+    { path: "/seat", component: Seat },
     { path: "/queue", component: Queue },
+    { path: "/paymentComplete", component: paymentComplete },
     { path: "/reservationComplete", component: ReservationComplete },
     { path: "/passwordReset", component: PasswordReset, meta: { gate: "passwordReset" } },
     { path: "/passwordResetComplete", component: PasswordResetComplete },

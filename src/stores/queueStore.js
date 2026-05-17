@@ -1,18 +1,24 @@
 import { defineStore } from "pinia"
 
-export const queueStore = defineStore("queue", {
+export const useQueueStore = defineStore("queue", {
   state: () => ({
     queue: null
   }),
 
   getters: {
-    accessAllowed: (state) => state.queue?.accessAllowed || false,
+    active: (state) => state.queue?.active || false,
     concertScheduleId: (state) => state.queue?.concertScheduleId ?? 0,
-    queueNumber: (state) => state.queue?.queueNumber ?? 0
+    totalCount: (state) => state.queue?.totalCount ?? 0,
+    aheadCount: (state) => state.queue?.aheadCount ?? 0,
+    myPosition: (state) => state.queue?.myPosition ?? 0,
+    concertSequence: (state) => state.queue?.concertSequence || "",
+    concertTitle: (state) => state.queue?.concertTitle || "",
   },
-  
+
   actions: {
     setQueue(queue) {
+
+      console.log(queue)
       this.queue = queue;
     }
   },

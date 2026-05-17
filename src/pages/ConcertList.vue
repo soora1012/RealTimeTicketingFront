@@ -1,12 +1,13 @@
 <script setup>
 import { ref, onMounted } from "vue"
 import { useRouter } from "vue-router";
-import { useAuthStore } from "@/stores/authStore"
+import { useAuthStore, useQueueStore } from "@/stores"
 import Loading from "@/components/Loading.vue"
 import * as api from "@/api"  
 
 const router = useRouter();
 const authStore = useAuthStore();
+const queueStore = useQueueStore();
 const loading = ref(false);
 const loginForm = ref({
   loginId: "",
@@ -30,11 +31,11 @@ const loadConcertList = async () => {
         state: schedule.state ?? "",
         sequence: schedule.sequence ?? 0,
         totalSeatCount: schedule.totalSeatCount ?? 0,
-        availableSeatCount: schedule.availableSeatCount ?? 0,
         holdSeatCount: schedule.holdSeatCount ?? 0,
         reservedSeatCount: schedule.reservedSeatCount ?? 0,
-      }));
 
+        availableSeatCount: schedule.totalSeatCount - (schedule.reservedSeatCount + schedule.holdSeatCount) ?? 0,
+      }));
   } catch (error) {
     console.error(error);
     const message = error.response?.data?.error || "오류가 발생했습니다.";
@@ -50,14 +51,24 @@ const goToSeat = async (concert) => {
     loading.value = true;
     const { data } = await api.queueEnter(concert.concertScheduleId);
     const result = data.data ?? "";
-    console.log("result::", result);
+    queueStore.setQueue({
+      active: result?.active,
+      concertScheduleId: result?.concertScheduleId,
+      totalCount: result?.totalCount,
+      aheadCount: result?.aheadCount,
+      myPosition: result?.myPosition,
+      concertSequence: concert?.sequence,
+      concertTitle: concert?.title,
+    });
+    console.log(result)
+    console.log(queueStore.totalCount)
     
-    if(result?.accessAllowed){
-        sessionStorage.setItem("gate:seat", "ok");
-        router.push("/concertList");
-    }else {
+    if(result?.active){
         sessionStorage.setItem("gate:queue", "ok");
         router.push("/queue");
+    }else {
+        sessionStorage.setItem("gate:seat", "ok");
+        router.push("/seat");
     }
   } catch (error) {
     console.error(error);
@@ -71,9 +82,8 @@ const goToSeat = async (concert) => {
 
 const init = () => {
  loginForm.value = {
-    userId : authStore.userId,
+    loginId : authStore.loginId,
  };
-
  loadConcertList();
 }
 
@@ -91,7 +101,7 @@ onMounted(() => {
         <p class="eyebrow">RealTime Ticketing_김소라</p>
         <h1>예약 가능 콘서트</h1>
         <p class="description">
-          {{ loginForm.userId }}님, 예매할 콘서트를 선택해주세요.
+          {{ loginForm.loginId }}님, 예매할 콘서트를 선택해주세요.
         </p>
       </header>
 
@@ -101,21 +111,21 @@ onMounted(() => {
           :key="concert.concertId"
           type="button"
           class="app-card concert-row"
-          :class="{ soldout: concert.remainingSeatCount <= 0 }"
-          :disabled="concert.remainingSeatCount <= 0"
+          :class="{ soldout: concert.availableSeatCount <= 0 }"
+          :disabled="concert.availableSeatCount <= 0"
           @click="goToSeat(concert)"
         >
           <div class="concert-info">
-            <strong>{{ concert.title+"_" + concert.sequence }}</strong>
+            <strong>{{ concert.title + "_" + concert.sequence }}</strong>
             <span>
-              {{ concert.remainingSeatCount > 0 ? "예약 가능" : "예약 마감" }}
+              {{ concert.availableSeatCount > 0 ? "예약 가능" : "예약 마감" }}
             </span>
           </div>
 
           <em>
             {{
-              concert.remainingSeatCount > 0
-                ? concert.remainingSeatCount.toLocaleString() + "석"
+              concert.availableSeatCount > 0
+                ? concert.availableSeatCount.toLocaleString() + "석"
                 : "마감"
             }}
           </em>
