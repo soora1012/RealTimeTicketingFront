@@ -60,8 +60,6 @@ const goToSeat = async (concert) => {
       concertSequence: concert?.sequence,
       concertTitle: concert?.title,
     });
-    console.log(result)
-    console.log(queueStore.totalCount)
     
     if(result?.active){
         sessionStorage.setItem("gate:queue", "ok");
@@ -90,8 +88,6 @@ const init = () => {
 onMounted(() => {  
   init(); 
 });
-
-
 </script>
 
 <template>

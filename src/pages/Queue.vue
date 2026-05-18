@@ -68,28 +68,13 @@ const init = () => {
   //sse
   eventSource = connectQueueSse({
     concertScheduleId,
-    /**
-     * 서버에서 queue 이벤트를 받을 때마다 실행
-     */
     onQueueUpdate: (data) => {
-
-      console.log("결과111:", data);
-      // queueNumber.value = data.queueNumber
-      // remainingAhead.value = data.remainingAhead
-      // totalWaiting.value = data.totalWaiting
-      // active.value = data.active
-      // connected.value = true
+      console.log(data)
     },
-
-    /**
-     * active가 true가 되면 좌석 선택 페이지로 이동
-     */
     onEnterAllowed: () => {
-      console.log("결과222:");
       sessionStorage.setItem("gate:seat", "ok");
       router.push("/seat");
     },
-
     onError: () => {
       connected.value = false
       errorMessage.value = "대기열 연결이 끊어졌습니다."
@@ -98,12 +83,10 @@ const init = () => {
 }
 
 
-
 const handleBeforeUnload = (event) => {
   event.preventDefault();
   event.returnValue = "";
- // leaveQueue();
-  
+  leaveQueue();
 }
 
 onUnmounted(() => {

@@ -13,6 +13,17 @@ const loginForm = ref({
   loginId: "",
 });
 
+const queueForm = ref({
+    active : false,
+    concertScheduleId : 0,
+    totalCount : 0,
+    aheadCount : 0,
+    myPosition : 0,
+    concertSequence : 0,
+    concertTitle : ""
+});
+
+
 const userId = "user_1";
 const concertTitle = "A 콘서트";
 
@@ -56,8 +67,6 @@ const leaveQueue = async () => {
   try {
     loading.value = true;
     await api.queuLeave(queueForm.value.concertScheduleId);
-    sessionStorage.setItem("gate:concertList", "ok");
-    router.push("/concertList");
   } catch (error) {
     console.error(error);
     const message = error.response?.data?.error || "오류가 발생했습니다.";
@@ -69,13 +78,16 @@ const leaveQueue = async () => {
 
 
 const init = () => {
+ leaveQueue();
  loginForm.value = {
     loginId : authStore.loginId,
  };
  queueForm.value = {
-    accessAllowed : queueStore.accessAllowed,
+    active : queueStore.active,
     concertScheduleId : queueStore.concertScheduleId,
-    queueNumber : queueStore.queueNumber,
+    totalCount : queueStore.totalCount,
+    aheadCount : queueStore.aheadCount,
+    myPosition : queueStore.myPosition,
     concertSequence : queueStore.concertSequence,
     concertTitle : queueStore.concertTitle,
  };
@@ -105,7 +117,7 @@ onMounted(() => {
         <p class="eyebrow">RealTime Ticketing_김소라</p>
         <h1>좌석 선택</h1>
         <p class="description">
-          {{ userId }}님, {{ concertTitle }}에서 예약할 좌석을 선택해주세요.
+          {{ loginForm.loginId }}님, {{ queueForm.concertTitle + "_" + queueForm.concertSequence }}에서 예약할 좌석을 선택해주세요.
         </p>
       </header>
 
@@ -147,7 +159,7 @@ onMounted(() => {
             type="button"
             class="confirm-button"
             :disabled="!selectedSeat"
-            @click="goConfirm"
+            @click="leaveQueue"
           >
             예약 확인하기
           </button>

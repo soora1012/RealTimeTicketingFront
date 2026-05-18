@@ -4,7 +4,7 @@ import { api } from "./axios"
  * 대기열 들어가기 API
  */
 export const queueEnter = (id, params) => {
-  return api.post(`/queue/enter/${id}`, params)
+  return api.get(`/queue/enter/${id}`, params)
 }
 
 
