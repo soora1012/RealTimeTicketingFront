@@ -23,7 +23,6 @@ const login = async () => {
       password: loginForm.value.password,
     };
     const { data } = await api.login(params);
-    const result = data.data;
     sessionStorage.setItem("gate:concertList", "ok");
     router.push("/concertList");
   } catch (error) {
@@ -36,8 +35,7 @@ const login = async () => {
 };
 
 const resetPassword = () => { 
-  sessionStorage.setItem("gate:passwordReset", "ok");
-  router.push("/passwordReset"); 
+  router.replace("/passwordReset"); 
 };
 
 const init = () => {

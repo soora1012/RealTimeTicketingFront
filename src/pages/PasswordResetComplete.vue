@@ -1,20 +1,34 @@
 <script setup>
-import { useRouter, useRoute } from "vue-router";
+import { ref, onMounted } from "vue"
+import { useRouter } from "vue-router";
+import { useAuthStore } from "@/stores"
+import Loading from "@/components/Loading.vue"
+import * as api from "@/api"  
 
 const router = useRouter();
-const route = useRoute();
+const authStore = useAuthStore();
+const loading = ref(false);
+const loginForm = ref({
+  loginId: "",
+})
 
-const loginId = route.query.loginId || "user_1";
 
-const goLogin = () => {
-  router.push({
-    path: "/login",
-    query: {
-      loginId,
-    },
-  });
-};
+const goToLogin = () => {
+  router.replace("/login");
+}
+
+const init = () => {
+ loginForm.value = {
+    loginId : authStore.loginId,
+ };
+}
+
+onMounted(() => {  
+  init(); 
+});
 </script>
+
+
 
 <template>
   <main class="app-page complete-page">
@@ -34,7 +48,7 @@ const goLogin = () => {
           </div>
 
           <strong class="complete-title">
-            {{ loginId }}
+            {{ loginForm.loginId }}
           </strong>
 
           <p class="complete-message">
@@ -45,7 +59,7 @@ const goLogin = () => {
         <button
           type="button"
           class="primary-button"
-          @click="goLogin"
+          @click="goToLogin"
         >
           로그인 페이지 이동
         </button>

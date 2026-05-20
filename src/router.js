@@ -23,8 +23,8 @@ const router = createRouter({
     { path: "/seat", component: Seat, meta: { gate: "seat" } },
     { path: "/queue", component: Queue, meta: { gate: "queue" } },
     { path: "/paymentComplete", component: paymentComplete, meta: { gate: "paymentComplete" } },
-    { path: "/reservationComplete", component: ReservationComplete },
-    { path: "/passwordReset", component: PasswordReset, meta: { gate: "passwordReset" } },
+    { path: "/reservationComplete", component: ReservationComplete, meta: { gate: "reservationComplete" } },
+    { path: "/passwordReset", component: PasswordReset },
     { path: "/passwordResetComplete", component: PasswordResetComplete },
     {
       path: "/:pathMatch(.*)*",

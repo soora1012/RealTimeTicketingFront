@@ -10,11 +10,10 @@ const authStore = useAuthStore();
 const loading = ref(false);
 const loginForm = ref({
   loginId: "",
-  newPassword: "",
 })
 
 
-const resetPassword = async ({ reset = false } = {}) => {
+const resetPassword = async () => {
   try {
     loading.value = true;
     const params = {
@@ -22,8 +21,8 @@ const resetPassword = async ({ reset = false } = {}) => {
       newPassword: loginForm.value.newPassword,
     };
     const { data } = await api.resetPassword(params);
-    sessionStorage.setItem("gate:login", "ok");
-    router.push("/login");
+    authStore.setPasswordResetCount(1);
+    router.replace("/passwordResetComplete");
 
   } catch (error) {
     console.error(error);
@@ -36,7 +35,9 @@ const resetPassword = async ({ reset = false } = {}) => {
 
 
 const init = () => {
- loginForm.value.loginId = authStore.loginId
+ loginForm.value = {
+    loginId : authStore.loginId,
+ };
 }
 
 onMounted(() => {  
