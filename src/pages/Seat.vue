@@ -1,13 +1,14 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from "vue"
 import { useRouter } from "vue-router";
-import { useAuthStore, useQueueStore } from "@/stores"
+import { useAuthStore, useQueueStore, useSeatStore } from "@/stores"
 import Loading from "@/components/Loading.vue"
 import * as api from "@/api"  
 
 const router = useRouter();
 const authStore = useAuthStore();
 const queueStore = useQueueStore();
+const seatStore = useSeatStore();
 const loading = ref(false);
 const loginForm = ref({
   loginId: "",
@@ -22,27 +23,40 @@ const queueForm = ref({
     concertSequence : 0,
     concertTitle : ""
 });
-
-
-const userId = "user_1";
-const concertTitle = "A 콘서트";
-
+const seatList = ref([])
 const selectedSeat = ref(null);
 
-const seats = ref([
-  { seatId: 1, seatName: "A1", price: 50000, status: "AVAILABLE" },
-  { seatId: 2, seatName: "A2", price: 50000, status: "AVAILABLE" },
-  { seatId: 3, seatName: "A3", price: 50000, status: "RESERVED" },
-  { seatId: 4, seatName: "B1", price: 40000, status: "AVAILABLE" },
-  { seatId: 5, seatName: "B2", price: 40000, status: "AVAILABLE" },
-  { seatId: 6, seatName: "B3", price: 40000, status: "RESERVED" },
-  { seatId: 7, seatName: "C1", price: 30000, status: "AVAILABLE" },
-  { seatId: 8, seatName: "C2", price: 30000, status: "AVAILABLE" },
-  { seatId: 9, seatName: "C3", price: 30000, status: "AVAILABLE" },
-]);
+
+const loadSeatList = async () => {
+  try {
+    loading.value = true;
+    const id = queueForm.value.concertScheduleId;
+    const { data } = await api.seatList(id, {});
+    const result = data.data ?? [];
+    seatList.value = result.map(seat => ({
+        seatId: seat.seatId ?? 0,
+        concertScheduleId: seat.concertScheduleId ?? 0,
+        sectionName: seat.sectionName ?? "",
+        rowName: seat.rowName ?? "",
+        seatNumber: seat.seatNumber ?? "",
+        price: seat.price ?? 0,
+        state : seat.state ?? "",
+      }));
+  
+  } catch (error) {
+    console.error(error);
+    const message = error.response?.data?.error || "오류가 발생했습니다.";
+    alert(message);
+  } finally {
+    loading.value = false
+  }
+};
+
+
 
 const selectSeat = (seat) => {
-  if (seat.status !== "AVAILABLE") return;
+  console.log(seat)
+  // if (seat.status !== "AVAILABLE") return;
   selectedSeat.value = seat;
 };
 
@@ -54,7 +68,6 @@ const goConfirm = () => {
   router.push({
     path: "/reservationConfirm",
     query: {
-      concertTitle,
       seatId: selectedSeat.value.seatId,
       seatName: selectedSeat.value.seatName,
       price: selectedSeat.value.price,
@@ -77,8 +90,25 @@ const leaveQueue = async () => {
 };
 
 
+const goToReservationComplete = () => {
+    seatStore.setSeat({
+      seatId: selectedSeat.value.seatId,
+      concertScheduleId: selectedSeat.value.concertScheduleId,
+      sectionName: selectedSeat.value.sectionName,
+      rowName: selectedSeat.value.rowName,
+      seatNumber: selectedSeat.value.seatNumber,
+      price: selectedSeat.value.price,
+      state: selectedSeat.value.state,
+      concertSequence: queueForm.value.concertSequence,
+      concertTitle: queueForm.value.concertTitle,
+    });
+
+    sessionStorage.setItem("gate:paymentComplete", "ok");
+    router.push("/paymentComplete");
+}
+
+
 const init = () => {
- leaveQueue();
  loginForm.value = {
     loginId : authStore.loginId,
  };
@@ -91,7 +121,11 @@ const init = () => {
     concertSequence : queueStore.concertSequence,
     concertTitle : queueStore.concertTitle,
  };
+
+ loadSeatList();
+ //leaveQueue();
 }
+
 
 
 const handleBeforeUnload = (event) => {
@@ -126,18 +160,20 @@ onMounted(() => {
 
         <section class="seat-map" aria-label="좌석 선택 영역">
           <button
-            v-for="seat in seats"
+            v-for="seat in seatList"
             :key="seat.seatId"
             type="button"
             class="app-card seat-button"
             :class="{
               selected: selectedSeat?.seatId === seat.seatId,
-              reserved: seat.status === 'RESERVED'
+              reserved: seat.state === 'RESERVED'
             }"
             :disabled="seat.status === 'RESERVED'"
             @click="selectSeat(seat)"
           >
-            <strong>{{ seat.seatName }}</strong>
+
+            <strong>{{ seat.rowName + seat.seatNumber}}</strong>
+            <span>{{ seat.sectionName }}</span>
             <span>{{ seat.price.toLocaleString() }}원</span>
           </button>
         </section>
@@ -145,7 +181,9 @@ onMounted(() => {
         <section class="summary-row">
           <div class="summary-info">
             <span>선택 좌석</span>
-            <strong>{{ selectedSeat?.seatName || "-" }}</strong>
+            <strong> {{ selectedSeat ? 
+                        selectedSeat.rowName + selectedSeat.seatNumber + "/" + selectedSeat.sectionName
+                        : "-" }}</strong>
           </div>
 
           <div class="summary-info">
@@ -159,7 +197,7 @@ onMounted(() => {
             type="button"
             class="confirm-button"
             :disabled="!selectedSeat"
-            @click="leaveQueue"
+            @click="goToReservationComplete"
           >
             예약 확인하기
           </button>
@@ -167,6 +205,7 @@ onMounted(() => {
       </section>
     </section>
   </main>
+  <Loading v-if="loading" />
 </template>
 
 <style scoped>

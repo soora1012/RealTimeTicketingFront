@@ -1,31 +1,53 @@
 <script setup>
 import { ref, onMounted } from "vue"
 import { useRouter } from "vue-router";
-import { useAuthStore, useQueueStore } from "@/stores"
+import { useAuthStore, useSeatStore } from "@/stores"
 import Loading from "@/components/Loading.vue"
 import * as api from "@/api"  
 
 const router = useRouter();
 const authStore = useAuthStore();
-const queueStore = useQueueStore();
+const seatStore = useSeatStore();
 const loading = ref(false);
 const loginForm = ref({
   loginId: "",
 });
+
+const seatForm = ref({
+  seatId: "",
+  concertScheduleId: "",
+  sectionName: "",
+  rowName: "",
+  seatNumber: "",
+  price: "",
+  state: "",
+  concertSequence: "",
+  concertTitle: "",
+});
+
+
 const goReservation = () => {
-  router.push("/concertList");
+    sessionStorage.setItem("gate:reservationComplete", "ok");
+    router.push("/reservationComplete");
 };
-
-const concertName = "SPRING FESTIVAL 2026";
-const seatName = "VIP A-12";
-const price = "88,000";
-
+ 
 const init = () => {
  loginForm.value = {
     loginId : authStore.loginId,
  };
-
+ seatForm.value = {
+    seatId: seatStore.seatId,
+    concertScheduleId: seatStore.concertScheduleId,
+    sectionName: seatStore.sectionName,
+    rowName: seatStore.rowName,
+    seatNumber: seatStore.seatNumber,
+    price: seatStore.price,
+    state: seatStore.state,
+    concertSequence: seatStore.concertSequence,
+    concertTitle: seatStore.concertTitle,
+ }
 }
+
 
 onMounted(() => {  
   init(); 
@@ -38,10 +60,10 @@ onMounted(() => {
       <header class="payment-complete-header">
         <p class="eyebrow">RealTime Ticketing_김소라</p>
 
-        <h1>결제가 완료되었습니다</h1>
+        <h1>예약 진행중...</h1>
 
         <p class="description">
-          좌석 예약 및 결제가 정상적으로 처리되었습니다.
+          해당 좌석을 예약하시겠습니까?
         </p>
       </header>
 
@@ -56,24 +78,24 @@ onMounted(() => {
           </div>
 
           <strong class="concert-title">
-            {{ concertName }}
+            {{ seatForm.concertTitle + "_" + seatForm.concertSequence }}
           </strong>
 
           <div class="reservation-info">
             <div class="info-row">
               <span class="label">좌석</span>
-              <strong>{{ seatName }}</strong>
+              <strong>{{ seatForm.rowName + seatForm.seatNumber + "/" + seatForm.sectionName }}</strong>
             </div>
 
             <div class="info-row">
               <span class="label">결제 금액</span>
-              <strong>{{ price }}원</strong>
+              <strong>{{ seatForm.price.toLocaleString() }}원</strong>
             </div>
 
             <div class="info-row">
               <span class="label">상태</span>
               <strong class="complete-text">
-                결제 완료
+                예약 진행
               </strong>
             </div>
           </div>
@@ -85,7 +107,7 @@ onMounted(() => {
             class="secondary-button"
             @click="goReservation"
           >
-            공연 목록 이동
+            예약진행
           </button>
 
           <button
@@ -93,12 +115,13 @@ onMounted(() => {
             class="primary-button"
             @click="goHome"
           >
-            처음으로 이동
+            처음으로
           </button>
         </div>
       </section>
     </section>
   </main>
+  <Loading v-if="loading" />
 </template>
 
 <style scoped>

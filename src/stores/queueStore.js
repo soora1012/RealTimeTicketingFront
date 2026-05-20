@@ -17,8 +17,6 @@ export const useQueueStore = defineStore("queue", {
 
   actions: {
     setQueue(queue) {
-
-      console.log(queue)
       this.queue = queue;
     }
   },

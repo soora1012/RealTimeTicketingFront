@@ -78,6 +78,11 @@ const goToSeat = async (concert) => {
 };
 
 
+const goMyPage = () => {
+  sessionStorage.setItem("gate:mypage", "ok");
+  router.push("/mypage");
+}
+
 const init = () => {
  loginForm.value = {
     loginId : authStore.loginId,
@@ -99,6 +104,13 @@ onMounted(() => {
         <p class="description">
           {{ loginForm.loginId }}님, 예매할 콘서트를 선택해주세요.
         </p>
+        <button
+          type="button"
+          class="mypage-button"
+          @click="goMyPage"
+        >
+          MY
+        </button>
       </header>
 
       <section class="concert-list">
@@ -151,6 +163,37 @@ onMounted(() => {
 
 .concert-header {
   margin-bottom: 26px;
+}
+
+.mypage-button {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+
+  background: #111827;
+  color: #ffffff;
+
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: -0.2px;
+  margin: 15px;
+
+  appearance: none;
+  -webkit-appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.mypage-button:hover {
+  background: #030712;
+  transform: translateY(-1px);
 }
 
 .eyebrow {
@@ -312,6 +355,13 @@ h1 {
     min-width: 74px;
     height: 38px;
     padding: 0 12px;
+    font-size: 12px;
+  }
+
+  .mypage-button {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
     font-size: 12px;
   }
 }

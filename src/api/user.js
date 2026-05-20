@@ -20,3 +20,10 @@ export const resetPassword = (params) => {
 export const userList = (params) => {
   return api.get(`/member/list`, {params})
 }
+
+/**
+ * MyPage
+ */
+export const mypage = (params) => {
+  return api.get(`/member/mypage`, {params})
+}

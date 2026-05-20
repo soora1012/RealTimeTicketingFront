@@ -63,6 +63,7 @@ onMounted(() => {
             type="text"
             autocomplete="username"
             placeholder="회원 아이디"
+            :disabled ="true"
           />
 
           <span>새 비밀번호</span>
@@ -86,7 +87,7 @@ onMounted(() => {
       </form>
     </section>
   </main>
-
+  <Loading v-if="loading" />
 </template>
 
 <style scoped>
@@ -220,6 +221,16 @@ h1 {
 .primary-button:disabled {
   background: #9ca3af;
 }
+
+input:disabled {
+  background: #f3f4f6;
+  color: #9ca3af;
+  border-color: #e5e7eb;
+  cursor: not-allowed;
+  opacity: 1;
+  -webkit-text-fill-color: #9ca3af;
+}
+
 
 @media (max-width: 767px) {
   .reset-page {

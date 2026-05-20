@@ -1,22 +1,58 @@
 <script setup>
-import { useRouter, useRoute } from "vue-router";
+import { ref, onMounted } from "vue"
+import { useRouter } from "vue-router";
+import { useAuthStore, useSeatStore } from "@/stores"
+import Loading from "@/components/Loading.vue"
+import * as api from "@/api"  
+
 
 const router = useRouter();
-const route = useRoute();
+const authStore = useAuthStore();
+const seatStore = useSeatStore();
+const loading = ref(false);
+const loginForm = ref({
+  loginId: "",
+});
 
-const userId = route.query.userId || "user_1";
-const concertTitle = route.query.concertTitle || "A 콘서트";
-const seatName = route.query.seatName || "A1";
-const price = Number(route.query.price || 50000);
-
-const goHome = () => {
-  router.push("/");
-};
+const seatForm = ref({
+  seatId: "",
+  concertScheduleId: "",
+  sectionName: "",
+  rowName: "",
+  seatNumber: "",
+  price: "",
+  state: "",
+  concertSequence: "",
+  concertTitle: "",
+});
 
 const goConcertList = () => {
   sessionStorage.setItem("gate:concertList", "ok");
   router.push("/concertList");
 };
+
+
+const init = () => {
+ loginForm.value = {
+    loginId : authStore.loginId,
+ };
+ seatForm.value = {
+    seatId: seatStore.seatId,
+    concertScheduleId: seatStore.concertScheduleId,
+    sectionName: seatStore.sectionName,
+    rowName: seatStore.rowName,
+    seatNumber: seatStore.seatNumber,
+    price: seatStore.price,
+    state: seatStore.state,
+    concertSequence: seatStore.concertSequence,
+    concertTitle: seatStore.concertTitle,
+ }
+}
+
+
+onMounted(() => {  
+  init(); 
+});
 </script>
 
 <template>
@@ -48,34 +84,26 @@ const goConcertList = () => {
         <article class="app-card reservation-info">
           <div>
             <span>회원</span>
-            <strong>{{ userId }}</strong>
+            <strong>{{ loginForm.loginId}}</strong>
           </div>
 
           <div>
             <span>공연</span>
-            <strong>{{ concertTitle }}</strong>
+            <strong>{{ seatForm.concertTitle + "_" + seatForm.concertSequence }}</strong>
           </div>
 
           <div>
             <span>좌석</span>
-            <strong>{{ seatName }}</strong>
+            <strong>{{ seatForm.rowName + seatForm.seatNumber + "/" + seatForm.sectionName }}</strong>
           </div>
 
           <div>
             <span>가격</span>
-            <strong>{{ price.toLocaleString() }}원</strong>
+            <strong>{{ seatForm.price.toLocaleString() }}원</strong>
           </div>
         </article>
 
         <div class="button-group">
-          <button
-            type="button"
-            class="primary-button"
-            @click="goHome"
-          >
-            처음으로
-          </button>
-
           <button
             type="button"
             class="secondary-button"
@@ -87,6 +115,7 @@ const goConcertList = () => {
       </section>
     </section>
   </main>
+  <Loading v-if="loading" />
 </template>
 
 <style scoped>

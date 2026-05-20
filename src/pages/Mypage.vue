@@ -1,49 +1,65 @@
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted } from "vue"
 import { useRouter } from "vue-router";
+import { useAuthStore, useSeatStore } from "@/stores"
+import Loading from "@/components/Loading.vue"
+import * as api from "@/api" 
+import { formatDate } from "@/utils/date"
 
 const router = useRouter();
-
-const user = ref({
-  userId: "user_1",
-  grade: "VIP",
-  reservationCount: 3,
+const authStore = useAuthStore();
+const loading = ref(false);
+const loginForm = ref({
+  loginId: ""
 });
+const reservationList = ref([]);
 
-const reservationList = ref([
-  {
-    reservationId: 1,
-    concertName: "SPRING FESTIVAL 2026",
-    seat: "VIP A-12",
-    status: "예매 완료",
-    price: "88,000원",
-    date: "2026.05.17",
-  },
-  {
-    reservationId: 2,
-    concertName: "SUMMER LIVE TOUR",
-    seat: "R B-04",
-    status: "결제 완료",
-    price: "77,000원",
-    date: "2026.06.01",
-  },
-  {
-    reservationId: 3,
-    concertName: "WINTER STAGE",
-    seat: "S C-21",
-    status: "취소 완료",
-    price: "66,000원",
-    date: "2026.04.11",
-  },
-]);
+const loadMyPage = async () => {
+  try {
+      loading.value = true;
+      const { data } = await api.mypage({});
+      const result = data.data;
+      loginForm.value = {
+        loginId : result.loginId,
+      }
+    } catch (error) {
+      console.error(error);
+      const message = error.response?.data?.error || "오류가 발생했습니다.";
+      alert(message);
+    } finally {
+      loading.value = false
+    }
+}
 
-const goConcertList = () => {
+const loadReservationInfo = async () => {
+  try {
+      loading.value = true;
+      const { data } = await api.reservationInfo({});
+      const result = data.data;
+      console.log(result)
+      reservationList.value = result;
+    } catch (error) {
+      console.error(error);
+      const message = error.response?.data?.error || "오류가 발생했습니다.";
+      alert(message);
+    } finally {
+      loading.value = false
+    }
+}
+
+const goToConcertList = () => {
   router.push("/concertList");
 };
 
-const goHome = () => {
-  router.push("/");
-};
+const init = () => {
+ loadMyPage();
+ loadReservationInfo();
+}
+
+onMounted(() => {  
+  init(); 
+});
+
 </script>
 
 <template>
@@ -63,23 +79,23 @@ const goHome = () => {
         <article class="app-card profile-card">
           <div class="profile-top">
             <div class="profile-badge">
-              {{ user.grade }}
+              일반회원
             </div>
 
             <strong class="profile-user">
-              {{ user.userId }}
+              {{ loginForm.loginId }}
             </strong>
           </div>
 
           <div class="profile-summary">
             <div class="summary-box">
               <span>예약 건수</span>
-              <strong>{{ user.reservationCount }}건</strong>
+              <strong>{{ reservationList.length }}건</strong>
             </div>
 
             <div class="summary-box">
-              <span>회원 등급</span>
-              <strong>{{ user.grade }}</strong>
+              <span></span>
+              <strong></strong>
             </div>
           </div>
         </article>
@@ -104,35 +120,35 @@ const goHome = () => {
           >
             <div class="reservation-top">
               <strong class="concert-title">
-                {{ reservation.concertName }}
+                {{ reservation.concertTitle + "_" + reservation.concertSequence }}
               </strong>
 
               <span
                 class="status-badge"
                 :class="{
-                  completed: reservation.status === '결제 완료',
-                  reserved: reservation.status === '예매 완료',
-                  canceled: reservation.status === '취소 완료',
+                  completed: reservation.reservationState === 'HOLD',
+                  reserved: reservation.reservationState === 'RESERVED',
+                  canceled: reservation.reservationState === 'CANCELLED',
                 }"
               >
-                {{ reservation.status }}
+                {{ reservation.reservationState }}
               </span>
             </div>
 
             <div class="reservation-info">
               <div class="info-row">
                 <span>좌석</span>
-                <strong>{{ reservation.seat }}</strong>
+                <strong>{{ reservation.rowName + reservation.seatNumber + "/" + reservation.sectionName }}</strong>
               </div>
 
               <div class="info-row">
                 <span>결제 금액</span>
-                <strong>{{ reservation.price }}</strong>
+                <strong>{{ reservation.price.toLocaleString() }}</strong>
               </div>
 
               <div class="info-row">
                 <span>예약일</span>
-                <strong>{{ reservation.date }}</strong>
+                <strong>{{ formatDate(reservation.reservedAt) }}</strong>
               </div>
             </div>
           </article>
@@ -142,22 +158,15 @@ const goHome = () => {
       <div class="button-group">
         <button
           type="button"
-          class="secondary-button"
-          @click="goConcertList"
+          class="primary-button"
+          @click="goToConcertList"
         >
           공연 목록 이동
-        </button>
-
-        <button
-          type="button"
-          class="primary-button"
-          @click="goHome"
-        >
-          처음으로 이동
         </button>
       </div>
     </section>
   </main>
+  <Loading v-if="loading" />
 </template>
 
 <style scoped>
@@ -369,13 +378,12 @@ h1 {
 
 .button-group {
   margin-top: 18px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
   gap: 12px;
 }
 
 .primary-button,
 .secondary-button {
+  width: 100%;
   height: 54px;
   border-radius: 16px;
   font-size: 15px;

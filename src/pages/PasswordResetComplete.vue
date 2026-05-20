@@ -52,6 +52,7 @@ const goLogin = () => {
       </section>
     </section>
   </main>
+  <Loading v-if="loading" />
 </template>
 
 <style scoped>
