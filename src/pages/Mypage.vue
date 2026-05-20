@@ -48,7 +48,7 @@ const loadReservationInfo = async () => {
 }
 
 const goToConcertList = () => {
-  router.push("/concertList");
+  router.replace("/concertList");
 };
 
 const init = () => {

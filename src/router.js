@@ -38,7 +38,6 @@ router.beforeEach((to) => {
   const gate = to.meta.gate
   if (!gate) return true
 
-  //버튼 클릭으로 들어올 때만 심어주는 토큰
   const token = sessionStorage.getItem(`gate:${gate}`)
   if (!token) {
     return { name: "NotFound" }
