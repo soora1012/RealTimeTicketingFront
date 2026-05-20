@@ -23,6 +23,8 @@ const login = async () => {
       password: loginForm.value.password,
     };
     const { data } = await api.login(params);
+    const result = data.data;
+    authStore.login(result.accessToken);
     sessionStorage.setItem("gate:concertList", "ok");
     router.push("/concertList");
   } catch (error) {

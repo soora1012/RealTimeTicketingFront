@@ -3,19 +3,21 @@ import { defineStore } from "pinia"
 export const useAuthStore = defineStore("auth", {
   state: () => ({
     isLogin: false,
-    user: null
+    user: null,
+    accessToken: null
   }),
 
   getters: {
+    token: (state) => state.accessToken || null,
     loginId: (state) => state.user?.loginId || null,
     userName: (state) => state.user?.userName || null,
     passwordResetCount: (state) => state.user?.passwordResetCount ?? 0
   },
 
   actions: {
-    login(user) {
+    login(accessToken) {
       this.isLogin = true
-      this.user = user
+      this.accessToken = accessToken
     },
     setUser(user) {
       this.user = user;
@@ -26,6 +28,7 @@ export const useAuthStore = defineStore("auth", {
     logout() {
       this.isLogin = false
       this.user = null
+       this.accessToken = null
     }
   },
   persist: {
