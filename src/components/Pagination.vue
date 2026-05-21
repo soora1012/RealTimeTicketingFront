@@ -12,8 +12,6 @@ const props = defineProps({
   },
 })
 
-console.log("props", props)
-
 const emit = defineEmits(["change"])
 
 const groupSize = 10
@@ -63,9 +61,6 @@ const goNextGroup = () => {
 }
 
 const goLast = () => {
-  console.log("page", props.page)
-  console.log("totalPages", props.totalPages)
-
   movePage(props.totalPages)
 }
 </script>

@@ -72,7 +72,6 @@ onMounted(() => {
             type="text"
             autocomplete="username"
             placeholder="회원 아이디"
-            :disabled="true"
           />
 
           <span>비밀번호</span>
