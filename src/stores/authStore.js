@@ -8,6 +8,7 @@ export const useAuthStore = defineStore("auth", {
   }),
 
   getters: {
+    loginCheck: (state) => state.isLogin || false,
     token: (state) => state.accessToken || null,
     loginId: (state) => state.user?.loginId || null,
     userName: (state) => state.user?.userName || null,
@@ -28,7 +29,7 @@ export const useAuthStore = defineStore("auth", {
     logout() {
       this.isLogin = false
       this.user = null
-       this.accessToken = null
+      this.accessToken = null
     }
   },
   persist: {
