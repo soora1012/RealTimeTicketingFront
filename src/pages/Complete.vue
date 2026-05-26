@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from "vue"
+import { ref, computed, onMounted, onUnmounted } from "vue"
 import { useRouter } from "vue-router";
 import { useAuthStore, useSeatStore } from "@/stores"
 import Loading from "@/components/Loading.vue"
@@ -25,12 +25,73 @@ const seatForm = ref({
   concertTitle: "",
 });
 
+const INTERVAL = 1000
+const totalSeconds = ref(1 * 60);
+let timer = null;
+const remainTime = computed(() => {
+  const minutes = String(Math.floor(totalSeconds.value / 60)).padStart(2, "0")
+  const seconds = String(totalSeconds.value % 60).padStart(2, "0")
+  return `${minutes}:${seconds}`
+})
 
-const goReservation = () => {
+
+const seatReservation = async () => {
+  try {
+    loading.value = true;
+    const param = {
+      seatId: seatForm.value.seatId,
+      concertScheduleId: seatForm.value.concertScheduleId,
+    };
+    const { data } = await api.seatReservation(param);
+    const result = data.data ?? null;
     sessionStorage.setItem("gate:reservationComplete", "ok");
-    router.push("/reservationComplete");
+    router.replace("/reservationComplete");
+
+  } catch (error) {
+    console.error(error);
+    const message = error.response?.data?.error || "오류가 발생했습니다.";
+    alert(message);
+  } finally {
+    loading.value = false
+  }
 };
- 
+
+
+const seatLeave = async () => {
+  try {
+    loading.value = true;
+    const param = {
+      seatId: seatForm.value.seatId,
+      concertScheduleId: seatForm.value.concertScheduleId,
+    };
+    const { data } = await api.seatLeave(param);
+    const result = data.data ?? null;
+    sessionStorage.setItem("gate:concertList", "ok");
+    router.push("/concertList");
+
+  } catch (error) {
+    console.error(error);
+    const message = error.response?.data?.error || "오류가 발생했습니다.";
+    alert(message);
+  } finally {
+    loading.value = false
+  }
+};
+
+
+const reservationTimer = () => {
+  timer = setInterval(() => {
+    if (totalSeconds.value <= 0) {
+      clearInterval(timer)
+      alert("결제 시간이 만료되어 예약이 취소되었습니다.")
+      seatLeave();
+      return
+    }
+    totalSeconds.value--
+  }, INTERVAL)
+}
+
+
 const init = () => {
  loginForm.value = {
     loginId : authStore.loginId,
@@ -46,8 +107,15 @@ const init = () => {
     concertSequence: seatStore.concertSequence,
     concertTitle: seatStore.concertTitle,
  }
+ reservationTimer();
 }
 
+
+onUnmounted(() => {
+  if (timer) {
+    clearInterval(timer)
+  }
+})
 
 onMounted(() => {  
   init(); 
@@ -58,6 +126,7 @@ onMounted(() => {
   <main class="app-page payment-complete-page">
     <section class="payment-complete-container">
       <header class="payment-complete-header">
+
         <p class="eyebrow">RealTime Ticketing_김소라</p>
 
         <h1>예약 진행중...</h1>
@@ -69,18 +138,33 @@ onMounted(() => {
 
       <section class="payment-complete-content">
         <article class="app-card payment-complete-card">
-          <div class="success-icon">
-            ✓
+
+        <div class="top-wrapper">
+          <div class="left-area">
+            <div class="success-icon">
+              ✓
+            </div>
+            <div class="reservation-user">
+              {{ loginForm.loginId }}
+            </div>
+             <strong class="concert-title">
+              {{ seatForm.concertTitle + "_" + seatForm.concertSequence }}
+            </strong>
           </div>
-
-          <div class="reservation-user">
-            {{ loginForm.loginId }}
+          <div class="timer-box">
+            <div class="timer-label">
+              <span class="timer-icon">◷</span>
+              남은 시간
+            </div>
+            <strong class="timer-time">
+              {{ remainTime }}
+            </strong>
+            <p class="timer-description">
+              시간 내 미결제 시<br />
+              예약이 취소됩니다.
+            </p>
           </div>
-
-          <strong class="concert-title">
-            {{ seatForm.concertTitle + "_" + seatForm.concertSequence }}
-          </strong>
-
+        </div>
           <div class="reservation-info">
             <div class="info-row">
               <span class="label">좌석</span>
@@ -105,7 +189,7 @@ onMounted(() => {
           <button
             type="button"
             class="secondary-button"
-            @click="goReservation"
+            @click="seatReservation"
           >
             예약진행
           </button>
@@ -113,7 +197,7 @@ onMounted(() => {
           <button
             type="button"
             class="primary-button"
-            @click="goHome"
+            @click="seatLeave"
           >
             처음으로
           </button>
@@ -272,6 +356,55 @@ h1 {
 
 .secondary-button:hover {
   background: #1d4ed8;
+}
+
+.top-wrapper {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.left-area {
+  display: grid;
+  gap: 14px;
+}
+
+.timer-box {
+  flex-shrink: 0;
+  min-width: 180px;
+  text-align: center;
+}
+
+.timer-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 18px;
+  font-weight: 900;
+  color: #111827;
+}
+
+.timer-icon {
+  font-size: 22px;
+}
+
+.timer-time {
+  display: block;
+  margin-top: 12px;
+  font-size: 52px;
+  line-height: 1;
+  font-weight: 1000;
+  color: #ef4444;
+  letter-spacing: -2px;
+}
+
+.timer-description {
+  margin-top: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 700;
+  color: #6b7280;
 }
 
 @media (max-width: 1024px) {

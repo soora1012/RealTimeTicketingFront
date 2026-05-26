@@ -1,8 +1,7 @@
 <script setup>
 import { ref, onMounted, computed, onUnmounted } from "vue"
-import { useRouter } from "vue-router";
+import { useRouter, onBeforeRouteLeave } from "vue-router";
 import { useAuthStore, useQueueStore } from "@/stores"
-import { connectQueueSse } from "@/sse/queueSse"
 import Loading from "@/components/Loading.vue"
 import * as api from "@/api"  
 
@@ -10,7 +9,6 @@ const router = useRouter();
 const authStore = useAuthStore();
 const queueStore = useQueueStore();
 const loading = ref(false);
-let eventSource = null;
 const loginForm = ref({
   loginId: "",
 });
@@ -25,18 +23,41 @@ const queueForm = ref({
     concertTitle : ""
 });
 
+
+const POLLING_INTERVAL  = 3000;
+let pollingTimer = null;
 const aheadCount = ref(0);
 const totalCount = ref(0);
 const progress = computed(() => {
   return Math.max(8, 100 - (aheadCount.value / totalCount.value) * 100);
 });
 
+
+const enterQueue = async () => {
+   try {
+    const { data } = await api.queueEnter(queueForm.value.concertScheduleId);
+    const result = data.data ?? "";
+    totalCount.value = result?.totalCount;
+    aheadCount.value = result?.myPosition;
+    if(result?.active){
+        sessionStorage.setItem("gate:queue", "ok");
+        router.push("/queue");
+    }else {
+        sessionStorage.setItem("gate:seat", "ok");
+        router.push("/seat");
+    }
+  } catch (error) {
+    console.error(error);
+    const message = error.response?.data?.error || "오류가 발생했습니다.";
+    alert(message);
+  } finally {
+  }
+};
+
 const leaveQueue = async () => {
   try {
     loading.value = true;
     await api.queuLeave(queueForm.value.concertScheduleId);
-    sessionStorage.setItem("gate:concertList", "ok");
-    router.push("/concertList");
   } catch (error) {
     console.error(error);
     const message = error.response?.data?.error || "오류가 발생했습니다.";
@@ -47,6 +68,13 @@ const leaveQueue = async () => {
 };
 
 
+
+const startPolling = () => {
+  enterQueue();
+  pollingTimer = setInterval(() => {
+      enterQueue();
+  }, POLLING_INTERVAL)
+}
 
 const init = () => {
   loginForm.value = {
@@ -63,25 +91,8 @@ const init = () => {
  };
   totalCount.value = queueStore.totalCount;
   aheadCount.value = queueStore.myPosition;
-  const concertScheduleId =  queueStore.concertScheduleId;
-
-  //sse
-  eventSource = connectQueueSse({
-    concertScheduleId,
-    onQueueUpdate: (data) => {
-      console.log(data)
-    },
-    onEnterAllowed: () => {
-      sessionStorage.setItem("gate:seat", "ok");
-      router.push("/seat");
-    },
-    onError: () => {
-      connected.value = false
-      errorMessage.value = "대기열 연결이 끊어졌습니다."
-    }
-  });
+  startPolling();
 }
-
 
 const handleBeforeUnload = (event) => {
   event.preventDefault();
@@ -89,12 +100,18 @@ const handleBeforeUnload = (event) => {
   leaveQueue();
 }
 
+
+onBeforeRouteLeave((to, from, next) => {
+  leaveQueue();
+  next();
+})
+
 onUnmounted(() => {
-  window.removeEventListener("beforeunload", handleBeforeUnload)
+  window.removeEventListener("beforeunload", handleBeforeUnload);
 })
 
 onMounted(() => {  
-  window.addEventListener("beforeunload", handleBeforeUnload)
+  window.addEventListener("beforeunload", handleBeforeUnload);
   init(); 
 });
 
