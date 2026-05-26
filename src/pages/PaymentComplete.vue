@@ -27,7 +27,7 @@ const seatForm = ref({
 
 const INTERVAL = 1000
 const totalSeconds = ref(1 * 60);
-let timer = null;
+let reservationTimer = null;
 const remainTime = computed(() => {
   const minutes = String(Math.floor(totalSeconds.value / 60)).padStart(2, "0")
   const seconds = String(totalSeconds.value % 60).padStart(2, "0")
@@ -35,14 +35,15 @@ const remainTime = computed(() => {
 })
 
 
-const seatReservation = async () => {
+const completedReservation = async () => {
   try {
     loading.value = true;
     const param = {
       seatId: seatForm.value.seatId,
       concertScheduleId: seatForm.value.concertScheduleId,
     };
-    const { data } = await api.seatReservation(param);
+    console.log("param", param)
+    const { data } = await api.reservationCompleted(param);
     const result = data.data ?? null;
     sessionStorage.setItem("gate:reservationComplete", "ok");
     router.replace("/reservationComplete");
@@ -57,16 +58,22 @@ const seatReservation = async () => {
 };
 
 
-const seatLeave = async () => {
+const leaveReservation = async () => {
+  console.log("1111")
+  if (reservationTimer) {
+    clearInterval(reservationTimer)
+  }
   try {
     loading.value = true;
     const param = {
       seatId: seatForm.value.seatId,
       concertScheduleId: seatForm.value.concertScheduleId,
     };
-    const { data } = await api.seatLeave(param);
+
+        console.log("param", param)
+    console.log("param", param)
+    const { data } = await api.reservationLeave(param);
     const result = data.data ?? null;
-    sessionStorage.setItem("gate:concertList", "ok");
     router.push("/concertList");
 
   } catch (error) {
@@ -79,12 +86,11 @@ const seatLeave = async () => {
 };
 
 
-const reservationTimer = () => {
-  timer = setInterval(() => {
+const startReservationTimer = () => {
+  reservationTimer = setInterval(() => {
     if (totalSeconds.value <= 0) {
-      clearInterval(timer)
       alert("결제 시간이 만료되어 예약이 취소되었습니다.")
-      seatLeave();
+      leaveReservation();
       return
     }
     totalSeconds.value--
@@ -107,17 +113,27 @@ const init = () => {
     concertSequence: seatStore.concertSequence,
     concertTitle: seatStore.concertTitle,
  }
- reservationTimer();
+ startReservationTimer();
 }
 
+const handleBeforeUnload = (event) => {
+  event.preventDefault();
+  event.returnValue = "";
+  leaveReservation();
+
+}
+
+onBeforeRouteLeave((to, from, next) => {
+  leaveReservation();
+  next();
+})
 
 onUnmounted(() => {
-  if (timer) {
-    clearInterval(timer)
-  }
+  window.removeEventListener("beforeunload", handleBeforeUnload);
 })
 
 onMounted(() => {  
+  window.addEventListener("beforeunload", handleBeforeUnload);
   init(); 
 });
 </script>
@@ -189,7 +205,7 @@ onMounted(() => {
           <button
             type="button"
             class="secondary-button"
-            @click="seatReservation"
+            @click="completedReservation()"
           >
             예약진행
           </button>
@@ -197,7 +213,7 @@ onMounted(() => {
           <button
             type="button"
             class="primary-button"
-            @click="seatLeave"
+            @click="leaveReservation()"
           >
             처음으로
           </button>

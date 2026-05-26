@@ -72,7 +72,6 @@ const goToLogin = (user) => {
     loginId: user.loginId,
     passwordResetCount: user.passwordResetCount,
   });
-  sessionStorage.setItem("gate:login", "ok");
   router.push("/login");
 };
 

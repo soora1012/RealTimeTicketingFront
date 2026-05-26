@@ -26,6 +26,13 @@ const queueForm = ref({
 const selectedSeat = ref(null);
 const seatList = ref([]);
 
+const selectSeat = (seat) => {
+  console.log(seat)
+  if (seat?.state !== "AVAILABLE") return;
+  selectedSeat.value = seat;
+};
+
+
 const loadSeatList = async () => {
   try {
     loading.value = true;
@@ -41,6 +48,8 @@ const loadSeatList = async () => {
         price: seat.price ?? 0,
         state : seat.state ?? "",
       }));
+
+      console.log("result:", result);
   
   } catch (error) {
     console.error(error);
@@ -51,17 +60,17 @@ const loadSeatList = async () => {
   }
 };
 
-
-const seatHold = async () => {
+/*좌석예약 홀드*/
+const reservationHold = async () => {
   try {
     loading.value = true;
     const param = {
       seatId: selectedSeat.value.seatId,
       concertScheduleId: selectedSeat.value.concertScheduleId,
     };
-    const { data } = await api.seatHold(param);
+    const { data } = await api.reservationHold(param);
     const result = data.data ?? null;
-    if(result.isHold){
+    if(result.hold){
         seatStore.setSeat({
           seatId: selectedSeat.value.seatId,
           concertScheduleId: selectedSeat.value.concertScheduleId,
@@ -80,7 +89,6 @@ const seatHold = async () => {
         alert("이미 선점이 완료되 좌석입니다.");
         loadSeatList();
       }
-    
    
   } catch (error) {
     console.error(error);
@@ -92,22 +100,12 @@ const seatHold = async () => {
 };
 
 
-const selectSeat = (seat) => {
-  console.log(seat)
-  if (seat?.state !== "AVAILABLE") return;
-  selectedSeat.value = seat;
-};
-
-
-
+/*콘서트 좌석 queue 삭제*/
 const leaveSeat = async () => {
+  sessionStorage.removeItem("gate:seat");
   try {
-    loading.value = true;
-    const param = {
-      seatId: selectedSeat.value.seatId,
-      concertScheduleId: selectedSeat.value.concertScheduleId,
-    };
-    await api.seatLeave(param);
+   loading.value = true;
+    await api.seatLeave(queueForm.value.concertScheduleId);
   } catch (error) {
     console.error(error);
     const message = error.response?.data?.error || "오류가 발생했습니다.";
@@ -117,6 +115,8 @@ const leaveSeat = async () => {
   }
 };
 
+
+/*콘서트 대기열 queue 삭제*/
 const leaveQueue = async () => {
   try {
     loading.value = true;
@@ -130,7 +130,9 @@ const leaveQueue = async () => {
   }
 };
 
+
 const init = () => {
+ sessionStorage.removeItem("gate:seat");
  loginForm.value = {
     loginId : authStore.loginId,
  };
@@ -146,6 +148,8 @@ const init = () => {
 
  loadSeatList();
  leaveQueue();
+////////////////
+  leaveSeat();
 }
 
 const handleBeforeUnload = (event) => {
@@ -222,7 +226,7 @@ onMounted(() => {
             type="button"
             class="confirm-button"
             :disabled="!selectedSeat"
-            @click="seatHold(seat)"
+            @click="reservationHold()"
           >
             예약 확인하기
           </button>

@@ -55,6 +55,11 @@ const enterQueue = async () => {
 };
 
 const leaveQueue = async () => {
+  sessionStorage.removeItem("gate:queue");
+  if (pollingTimer) {
+    clearInterval(pollingTimer)
+  }
+
   try {
     loading.value = true;
     await api.queuLeave(queueForm.value.concertScheduleId);
@@ -77,6 +82,7 @@ const startPolling = () => {
 }
 
 const init = () => {
+  sessionStorage.removeItem("gate:queue");
   loginForm.value = {
       loginId : authStore.loginId,
   };
@@ -98,6 +104,7 @@ const handleBeforeUnload = (event) => {
   event.preventDefault();
   event.returnValue = "";
   leaveQueue();
+
 }
 
 

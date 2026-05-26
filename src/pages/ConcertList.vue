@@ -79,7 +79,6 @@ const goToSeat = async (concert) => {
 
 
 const goMyPage = () => {
-  sessionStorage.setItem("gate:mypage", "ok");
   router.replace("/mypage");
 }
 
