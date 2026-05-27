@@ -89,7 +89,7 @@ onMounted(() => {
             type="button"
             @click="resetPassword"
           >
-            비밀번호 초기화
+            회원가입
           </button>
 
            <button class="login-button" type="submit">

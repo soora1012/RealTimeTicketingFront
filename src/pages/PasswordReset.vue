@@ -50,7 +50,7 @@ onMounted(() => {
     <section class="reset-container">
       <header class="reset-header">
         <p class="eyebrow">RealTime Ticketing_김소라</p>
-        <h1>비밀번호 초기화</h1>
+        <h1>회원가입</h1>
         <p class="description">
           테스트 회원의 비밀번호를 새로 설정합니다.
         </p>

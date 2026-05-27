@@ -104,9 +104,7 @@ const handleBeforeUnload = (event) => {
   event.preventDefault();
   event.returnValue = "";
   leaveQueue();
-
 }
-
 
 onBeforeRouteLeave((to, from, next) => {
   leaveQueue();

@@ -111,14 +111,28 @@ const init = () => {
  startReservationTimer();
 }
 
+const handleBeforeUnload = (event) => {
+  event.preventDefault();
+  event.returnValue = "";
+  leaveReservation();
+}
+
+
 onBeforeRouteLeave((to, from, next) => {
   sessionStorage.removeItem("gate:paymentComplete");
+  leaveReservation();
   next();
 })
 
+onUnmounted(() => {
+  window.removeEventListener("beforeunload", handleBeforeUnload);
+})
+
 onMounted(() => {  
+  window.addEventListener("beforeunload", handleBeforeUnload);
   init(); 
 });
+
 </script>
 
 <template>
