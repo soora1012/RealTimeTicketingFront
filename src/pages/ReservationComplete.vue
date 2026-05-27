@@ -27,16 +27,16 @@ const seatForm = ref({
 });
 
 const goConcertList = () => {
-  sessionStorage.setItem("gate:concertList", "ok");
   router.push("/concertList");
 };
 
 
 const init = () => {
- loginForm.value = {
-    loginId : authStore.loginId,
- };
- seatForm.value = {
+  sessionStorage.removeItem("gate:reservationComplete");
+  loginForm.value = {
+      loginId : authStore.loginId,
+  };
+  seatForm.value = {
     seatId: seatStore.seatId,
     concertScheduleId: seatStore.concertScheduleId,
     sectionName: seatStore.sectionName,
@@ -46,7 +46,7 @@ const init = () => {
     state: seatStore.state,
     concertSequence: seatStore.concertSequence,
     concertTitle: seatStore.concertTitle,
- }
+  }
 }
 
 

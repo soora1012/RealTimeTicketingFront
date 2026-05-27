@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from "vue"
-import { useRouter } from "vue-router";
+import { useRouter, onBeforeRouteLeave } from "vue-router";
 import { useAuthStore, useSeatStore } from "@/stores"
 import Loading from "@/components/Loading.vue"
 import * as api from "@/api"  
@@ -42,7 +42,6 @@ const completedReservation = async () => {
       seatId: seatForm.value.seatId,
       concertScheduleId: seatForm.value.concertScheduleId,
     };
-    console.log("param", param)
     const { data } = await api.reservationCompleted(param);
     const result = data.data ?? null;
     sessionStorage.setItem("gate:reservationComplete", "ok");
@@ -59,7 +58,6 @@ const completedReservation = async () => {
 
 
 const leaveReservation = async () => {
-  console.log("1111")
   if (reservationTimer) {
     clearInterval(reservationTimer)
   }
@@ -70,12 +68,9 @@ const leaveReservation = async () => {
       concertScheduleId: seatForm.value.concertScheduleId,
     };
 
-        console.log("param", param)
-    console.log("param", param)
     const { data } = await api.reservationLeave(param);
     const result = data.data ?? null;
     router.push("/concertList");
-
   } catch (error) {
     console.error(error);
     const message = error.response?.data?.error || "오류가 발생했습니다.";
@@ -116,24 +111,12 @@ const init = () => {
  startReservationTimer();
 }
 
-const handleBeforeUnload = (event) => {
-  event.preventDefault();
-  event.returnValue = "";
-  leaveReservation();
-
-}
-
 onBeforeRouteLeave((to, from, next) => {
-  leaveReservation();
+  sessionStorage.removeItem("gate:paymentComplete");
   next();
 })
 
-onUnmounted(() => {
-  window.removeEventListener("beforeunload", handleBeforeUnload);
-})
-
 onMounted(() => {  
-  window.addEventListener("beforeunload", handleBeforeUnload);
   init(); 
 });
 </script>

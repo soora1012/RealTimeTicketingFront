@@ -27,7 +27,6 @@ const selectedSeat = ref(null);
 const seatList = ref([]);
 
 const selectSeat = (seat) => {
-  console.log(seat)
   if (seat?.state !== "AVAILABLE") return;
   selectedSeat.value = seat;
 };
@@ -148,8 +147,6 @@ const init = () => {
 
  loadSeatList();
  leaveQueue();
-////////////////
-  leaveSeat();
 }
 
 const handleBeforeUnload = (event) => {
