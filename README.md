@@ -80,6 +80,9 @@ User Access
 
 ```
 src
+ ├─ k6
+ │   └─ login-seat-test.js
+ │
  ├─ api
  │   ├─ axios.js
  │   ├─ index.js
