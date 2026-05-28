@@ -35,9 +35,9 @@ onMounted(() => {
     <section class="complete-container">
       <header class="complete-header">
         <p class="eyebrow">RealTime Ticketing_김소라</p>
-        <h1>초기화 완료</h1>
+        <h1>회원가입 완료</h1>
         <p class="description">
-          비밀번호가 정상적으로 초기화되었습니다.
+          회원가입이 정상적으로 처리되었습니다.
         </p>
       </header>
 

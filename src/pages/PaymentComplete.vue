@@ -70,7 +70,6 @@ const leaveReservation = async () => {
 
     const { data } = await api.reservationLeave(param);
     const result = data.data ?? null;
-    router.push("/concertList");
   } catch (error) {
     console.error(error);
     const message = error.response?.data?.error || "오류가 발생했습니다.";

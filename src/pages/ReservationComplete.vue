@@ -235,7 +235,7 @@ h1 {
 
 .button-group {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 12px;
 }
 
